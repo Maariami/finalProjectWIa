@@ -1,0 +1,44 @@
+:root {
+  color-scheme: light;
+  --color-brand: #7628d8;
+  --color-brand-dark: #5116a6;
+  --color-brand-soft: #efe2ff;
+  --color-sale: #f22f46;
+  --color-pop-yellow: #f8ed57;
+  --color-pop-blue: #70a5ff;
+  --color-pop-lilac: #c28aff;
+  --color-ink: #211d28;
+  --color-muted: #716b7a;
+  --color-page: #faf8fc;
+  --color-surface: #fff;
+  --color-border: #ece7f1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+  background: var(--color-page);
+  color: var(--color-ink);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--color-pop-blue);
+  outline-offset: 3px;
+}
