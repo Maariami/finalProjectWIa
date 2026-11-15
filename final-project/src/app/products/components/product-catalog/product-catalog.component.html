@@ -5,6 +5,16 @@
     <p class="catalog__intro">Explore products picked for everyday life.</p>
   </header>
 
+  <label class="catalog__search">
+    <span>Search products</span>
+    <input
+      type="search"
+      [value]="searchQuery()"
+      placeholder="Search by name, brand or SKU"
+      (input)="onSearchChange($event)"
+    />
+  </label>
+
   @if (loading()) {
     <p class="catalog__message" role="status">Loading products...</p>
   } @else if (errorMessage(); as message) {
@@ -16,7 +26,7 @@
       </button>
     </section>
   } @else if (products().length === 0) {
-    <p class="catalog__message">No products found.</p>
+    <p class="catalog__message">No products match your search.</p>
   } @else {
     <div class="catalog__summary">
       <h2>All products</h2>

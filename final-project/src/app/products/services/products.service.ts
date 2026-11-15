@@ -19,7 +19,7 @@ export class ProductsService {
   getProducts(query: ProductQueryParams = {}): Observable<PagedResult<ProductListItem>> {
     let params = new HttpParams();
 
-    if (query.search !== undefined) params = params.set('search', query.search);
+    if (query.search !== undefined) params = params.set('Search', query.search);
     if (query.categoryId !== undefined) params = params.set('categoryId', query.categoryId);
     for (const brand of query.brands ?? []) {
       params = params.append('brands', brand);
