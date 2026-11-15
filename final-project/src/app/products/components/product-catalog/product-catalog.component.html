@@ -5,7 +5,7 @@
     <p class="catalog__intro">Explore products picked for everyday life.</p>
   </header>
 
-  <section class="catalog-controls" aria-label="Search and filter products">
+  <section class="catalog-controls" aria-label="Search, sort and filter products">
     <label class="catalog__search">
       <span>Search products</span>
       <input
@@ -14,6 +14,15 @@
         placeholder="Search by name, brand or SKU"
         (input)="onSearchChange($event)"
       />
+    </label>
+
+    <label>
+      <span>Sort by</span>
+      <select [value]="sort()" (change)="onSortChange($event)">
+        @for (option of sortOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
     </label>
 
     <label>
