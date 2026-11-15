@@ -1,0 +1,89 @@
+<main class="catalog">
+  <header class="catalog__heading">
+    <p class="catalog__eyebrow">SHOPSPHERE / CATALOG</p>
+    <h1>Find your next favorite</h1>
+    <p class="catalog__intro">Explore products picked for everyday life.</p>
+  </header>
+
+  @if (loading()) {
+    <p class="catalog__message" role="status">Loading products...</p>
+  } @else if (errorMessage(); as message) {
+    <section class="catalog__message catalog__message--error" role="alert">
+      <h2>Products could not be loaded</h2>
+      <p>{{ message }}</p>
+      <button class="catalog__retry" type="button" (click)="retry()">
+        Try again
+      </button>
+    </section>
+  } @else if (products().length === 0) {
+    <p class="catalog__message">No products found.</p>
+  } @else {
+    <div class="catalog__summary">
+      <h2>All products</h2>
+      <p>{{ totalCount() }} products</p>
+    </div>
+
+    <section class="product-grid" aria-label="Products">
+      @for (product of products(); track product.id) {
+        <article class="product-card">
+          <div class="product-card__image">
+            @if (product.primaryImageUrl; as imageUrl) {
+              <img [src]="imageUrl" [alt]="product.name" loading="lazy" />
+            } @else {
+              <span class="product-card__no-image" aria-label="No product image">SS</span>
+            }
+            @if (product.discountPercent; as discountPercent) {
+              <span class="product-card__discount">-{{ discountPercent }}%</span>
+            }
+          </div>
+          <div class="product-card__content">
+            <p class="product-card__brand">{{ product.brand }}</p>
+            <h3>{{ product.name }}</h3>
+            <p class="product-card__category">{{ product.category.name }}</p>
+            <div class="product-card__rating" aria-label="Product rating">
+              <span aria-hidden="true">★</span>
+              <span>{{ product.averageRating | number: '1.1-1' }}</span>
+              <span class="product-card__reviews">({{ product.reviewCount }})</span>
+            </div>
+            <div class="product-card__price">
+              <strong>{{ product.price | number: '1.2-2' }}</strong>
+              @if (product.oldPrice; as oldPrice) {
+                <del>{{ oldPrice | number: '1.2-2' }}</del>
+              }
+            </div>
+            <p
+              class="product-card__stock"
+              [class.product-card__stock--out]="!product.inStock"
+            >
+              {{ product.inStock ? 'In stock' : 'Out of stock' }}
+            </p>
+          </div>
+        </article>
+      }
+    </section>
+
+    @if (totalPages() > 1) {
+      <nav class="pagination" aria-label="Product pages">
+        <button
+          type="button"
+          class="pagination__button"
+          [disabled]="currentPage() === 1 || loading()"
+          (click)="goToPage(currentPage() - 1)"
+        >
+          Previous
+        </button>
+        <span class="pagination__status" aria-live="polite">
+          Page {{ currentPage() }} of {{ totalPages() }}
+        </span>
+        <button
+          type="button"
+          class="pagination__button pagination__button--next"
+          [disabled]="currentPage() === totalPages() || loading()"
+          (click)="goToPage(currentPage() + 1)"
+        >
+          Next
+        </button>
+      </nav>
+    }
+  }
+</main>
