@@ -74,7 +74,7 @@ export class ProductCatalogComponent implements OnInit, OnDestroy {
     this.clearSearchDebounce();
     this.searchDebounceTimer = setTimeout(() => {
       this.searchDebounceTimer = null;
-      this.loadPage(1);
+      this.resetAndLoadProducts();
     }, 300);
   }
 
@@ -161,7 +161,7 @@ export class ProductCatalogComponent implements OnInit, OnDestroy {
 
   protected goToPage(page: number): void {
     if (this.searchDebounceTimer !== null) {
-      this.loadPage(1);
+      this.resetAndLoadProducts();
       return;
     }
     if (this.loading() || page < 1 || page > this.totalPages()) return;
