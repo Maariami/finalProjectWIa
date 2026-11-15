@@ -5,15 +5,116 @@
     <p class="catalog__intro">Explore products picked for everyday life.</p>
   </header>
 
-  <label class="catalog__search">
-    <span>Search products</span>
-    <input
-      type="search"
-      [value]="searchQuery()"
-      placeholder="Search by name, brand or SKU"
-      (input)="onSearchChange($event)"
-    />
-  </label>
+  <section class="catalog-controls" aria-label="Search and filter products">
+    <label class="catalog__search">
+      <span>Search products</span>
+      <input
+        type="search"
+        [value]="searchQuery()"
+        placeholder="Search by name, brand or SKU"
+        (input)="onSearchChange($event)"
+      />
+    </label>
+
+    <label>
+      <span>Category</span>
+      <select [value]="categoryId()" (change)="onCategoryChange($event)">
+        <option value="">All categories</option>
+        @for (category of filters()?.categories ?? []; track category.id) {
+          <option [value]="category.id">{{ category.name }} ({{ category.count }})</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      <span>Minimum price</span>
+      <input
+        type="number"
+        [value]="minPrice() ?? ''"
+        [min]="filters()?.minPrice ?? null"
+        [max]="filters()?.maxPrice ?? null"
+        step="0.01"
+        (change)="onMinPriceChange($event)"
+      />
+    </label>
+
+    <label>
+      <span>Maximum price</span>
+      <input
+        type="number"
+        [value]="maxPrice() ?? ''"
+        [min]="filters()?.minPrice ?? null"
+        [max]="filters()?.maxPrice ?? null"
+        step="0.01"
+        (change)="onMaxPriceChange($event)"
+      />
+    </label>
+
+    <label>
+      <span>Rating</span>
+      <select [value]="minRating() ?? ''" (change)="onMinRatingChange($event)">
+        <option value="">Rating</option>
+        <option value="3">3 stars and up</option>
+        <option value="4">4 stars and up</option>
+        <option value="4.5">4.5 stars and up</option>
+        <option value="5">5 stars</option>
+      </select>
+    </label>
+
+    <label>
+      <span>Availability</span>
+      <select
+        [value]="inStock() === undefined ? '' : inStock() ? 'true' : 'false'"
+        (change)="onStockChange($event)"
+      >
+        <option value="">Availability</option>
+        <option value="true">In stock</option>
+        <option value="false">Out of stock</option>
+      </select>
+    </label>
+
+    <label class="catalog-controls__brand-dropdown">
+      <span>Brands</span>
+      <select value="" (change)="onBrandSelection($event)">
+        <option value="">
+          {{ selectedBrands().length > 0 ? selectedBrands().length + ' selected' : 'All brands' }}
+        </option>
+        @if (filtersLoading()) {
+          <option value="" disabled>Loading brands...</option>
+        } @else if (getAvailableBrands().length === 0) {
+          <option value="" disabled>No brands available</option>
+        } @else {
+          @for (brand of getAvailableBrands(); track brand.name) {
+            <option [value]="brand.name">
+              {{ selectedBrands().includes(brand.name) ? '✓ ' : '' }}{{ brand.name }} ({{ brand.count }})
+            </option>
+          }
+        }
+      </select>
+    </label>
+
+    <label class="catalog-controls__checkbox catalog-controls__sale">
+      <input type="checkbox" [checked]="onSale()" (change)="onSaleChange($event)" />
+      <span>On sale</span>
+    </label>
+
+    <button class="catalog__clear" type="button" (click)="clearFilters()">
+      Clear filters
+    </button>
+  </section>
+
+  @if (filtersErrorMessage(); as message) {
+    <section class="catalog__filter-error" role="alert">
+      <p>Filter options could not be loaded: {{ message }}</p>
+      <button class="catalog__retry" type="button" (click)="retryFilters()">
+        Try again
+      </button>
+    </section>
+  }
+
+  @if (priceErrorMessage(); as message) {
+    <p class="catalog__validation" role="alert">{{ message }}</p>
+  }
 
   @if (loading()) {
     <p class="catalog__message" role="status">Loading products...</p>
@@ -25,8 +126,10 @@
         Try again
       </button>
     </section>
+  } @else if (priceErrorMessage()) {
+    <p class="catalog__message">Update the price range to see matching products.</p>
   } @else if (products().length === 0) {
-    <p class="catalog__message">No products match your search.</p>
+    <p class="catalog__message">No products match your search and filters.</p>
   } @else {
     <div class="catalog__summary">
       <h2>All products</h2>
