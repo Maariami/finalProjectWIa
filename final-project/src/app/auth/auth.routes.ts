@@ -15,4 +15,11 @@ export const authRoutes: Routes = [
         (component) => component.RegisterComponent,
       ),
   },
+  {
+    path: 'resend-confirmation',
+    loadComponent: () =>
+      import('./components/resend-confirmation/resend-confirmation.component').then(
+        (component) => component.ResendConfirmationComponent,
+      ),
+  },
 ];

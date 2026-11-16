@@ -1,0 +1,50 @@
+<main class="auth-page">
+  <section class="auth-card">
+    <p class="auth-card__eyebrow">SHOPSPHERE / ACCOUNT</p>
+    <h1>Resend confirmation email</h1>
+
+    @if (confirmation(); as result) {
+      <section class="auth-notice" role="status">
+        <p>{{ result.message }}</p>
+        @if (result.mockEmail; as mockEmail) {
+          <div class="auth-mock-email">
+            <p>{{ mockEmail.subject }} — {{ mockEmail.to }}</p>
+            @if (mockEmail.link) {
+              <a [href]="mockEmail.link">Open the confirmation link</a>
+            }
+          </div>
+        }
+        <a routerLink="/login">Continue to sign in</a>
+      </section>
+    } @else {
+      <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
+        <label>
+          <span>Email</span>
+          <input formControlName="email" type="email" autocomplete="email" />
+          @if (form.controls.email.touched && form.controls.email.invalid) {
+            <small>Enter the email address used to register.</small>
+          }
+        </label>
+
+        @if (errorMessage(); as message) {
+          <p class="auth-error" role="alert">{{ message }}</p>
+        }
+        @if (validationMessages().length > 0) {
+          <ul class="auth-error-list" role="alert">
+            @for (message of validationMessages(); track $index) {
+              <li>{{ message }}</li>
+            }
+          </ul>
+        }
+
+        <button type="submit" [disabled]="loading()">
+          {{ loading() ? 'Sending...' : 'Resend confirmation email' }}
+        </button>
+      </form>
+
+      <p class="auth-card__footer">
+        <a routerLink="/confirm-email">Enter a confirmation token</a>
+      </p>
+    }
+  </section>
+</main>
