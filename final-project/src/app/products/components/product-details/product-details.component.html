@@ -1,0 +1,22 @@
+<main class="product-details">
+  <a class="product-details__back" routerLink="/products">Back to products</a>
+
+  @if (loading()) {
+    <p class="product-details__message" role="status">Loading product details...</p>
+  } @else if (notFound()) {
+    <section class="product-details__message" role="status">
+      <h1>Product not found</h1>
+      <p>This product may have been removed or is no longer available.</p>
+    </section>
+  } @else if (errorMessage(); as message) {
+    <section class="product-details__message product-details__message--error" role="alert">
+      <h1>Product details could not be loaded</h1>
+      <p>{{ message }}</p>
+    </section>
+  } @else if (product(); as product) {
+    <section class="product-details__content">
+      <p class="product-details__eyebrow">Product details</p>
+      <h1>{{ product.name }}</h1>
+    </section>
+  }
+</main>
