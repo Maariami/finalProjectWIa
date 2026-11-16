@@ -2,6 +2,7 @@ import { DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import {
   ProductBrandFacet,
   ProductFilters,
@@ -18,7 +19,7 @@ type ProductSortOption = {
 
 @Component({
   selector: 'app-product-catalog',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, RouterLink],
   templateUrl: './product-catalog.component.html',
   styleUrl: './product-catalog.component.scss',
 })

@@ -147,7 +147,11 @@
 
     <section class="product-grid" aria-label="Products">
       @for (product of products(); track product.id) {
-        <article class="product-card">
+        <a
+          class="product-card"
+          [routerLink]="['/products', product.slug]"
+          [attr.aria-label]="'View details for ' + product.name"
+        >
           <div class="product-card__image">
             @if (product.primaryImageUrl; as imageUrl) {
               <img [src]="imageUrl" [alt]="product.name" loading="lazy" />
@@ -180,7 +184,7 @@
               {{ product.inStock ? 'In stock' : 'Out of stock' }}
             </p>
           </div>
-        </article>
+        </a>
       }
     </section>
 
