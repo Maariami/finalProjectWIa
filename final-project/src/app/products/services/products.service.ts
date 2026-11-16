@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../../core/api/api-base-url';
 import {
   PagedResult,
   ProductDetails,
@@ -14,7 +15,7 @@ import {
 })
 export class ProductsService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'https://wtm-2026-final-production.up.railway.app';
+  private readonly baseUrl = API_BASE_URL;
 
   getProducts(query: ProductQueryParams = {}): Observable<PagedResult<ProductListItem>> {
     let params = new HttpParams();
