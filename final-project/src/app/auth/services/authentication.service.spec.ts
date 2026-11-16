@@ -69,9 +69,9 @@ describe('AuthenticationService', () => {
     const messageResponse: MessageResponse = { message: 'Request accepted' };
     const authResponse: AuthResponse = {
       accessToken: 'test-access-token',
-      accessTokenExpiresAt: '2026-11-16T22:00:00Z',
+      accessTokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
       refreshToken: 'test-refresh-token',
-      refreshTokenExpiresAt: '2026-11-23T21:00:00Z',
+      refreshTokenExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       user: {
         id: '4a77b32f-f9cc-44fb-bddc-0f86507967b1',
         email: 'person@example.com',
@@ -117,6 +117,9 @@ describe('AuthenticationService', () => {
       authResponse,
     );
     expect(service.currentUser()).toEqual(authResponse.user);
+    expect(service.accessToken()).toBe(authResponse.accessToken);
+    expect(service.getValidAccessToken()).toBe(authResponse.accessToken);
+    expect(service.getValidRefreshToken()).toBe(authResponse.refreshToken);
     expectPost(
       service.refresh({ refreshToken: 'test-refresh-token' }),
       'refresh',
@@ -143,6 +146,35 @@ describe('AuthenticationService', () => {
       },
       messageResponse,
     );
+    service.clearSession();
+    expect(service.currentUser()).toBeNull();
+    expect(service.accessToken()).toBeNull();
+  });
+
+  it('does not return expired tokens as valid', () => {
+    service.login({ email: 'person@example.com', password: 'ExamplePass1' }).subscribe();
+    const request = httpTestingController.expectOne(`${baseUrl}/login`);
+    request.flush({
+      accessToken: 'expired-access-token',
+      accessTokenExpiresAt: new Date(Date.now() - 1000).toISOString(),
+      refreshToken: 'test-refresh-token',
+      refreshTokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      user: {
+        id: 'user-id',
+        email: 'person@example.com',
+        firstName: 'First',
+        lastName: 'Last',
+        fullName: 'First Last',
+        phoneNumber: null,
+        avatarUrl: null,
+        role: 'Customer',
+        emailConfirmed: true,
+        createdAt: new Date().toISOString(),
+      },
+    } satisfies AuthResponse);
+
+    expect(service.getValidAccessToken()).toBeNull();
+    expect(service.getValidRefreshToken()).toBe('test-refresh-token');
   });
 
   it('sends the refresh token for logout and accepts an empty success response', () => {
