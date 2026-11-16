@@ -29,6 +29,7 @@ export class ProductsService {
     if (query.minRating !== undefined) params = params.set('MinRating', query.minRating);
     if (query.inStock !== undefined) params = params.set('InStock', query.inStock);
     if (query.onSale !== undefined) params = params.set('OnSale', query.onSale);
+    if (query.sort !== undefined) params = params.set('Sort', query.sort);
     if (query.sort !== undefined) params = params.set('sort', query.sort);
     if (query.page !== undefined) params = params.set('page', query.page);
     if (query.pageSize !== undefined) params = params.set('pageSize', query.pageSize);

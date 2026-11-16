@@ -7,8 +7,14 @@ import {
   ProductFilters,
   ProductListItem,
   ProductQueryParams,
+  ProductSort,
 } from '../../models/product.model';
 import { ProductsService } from '../../services/products.service';
+
+type ProductSortOption = {
+  value: ProductSort;
+  label: string;
+};
 
 @Component({
   selector: 'app-product-catalog',
@@ -42,6 +48,16 @@ export class ProductCatalogComponent implements OnInit, OnDestroy {
   protected readonly minRating = signal<number | undefined>(undefined);
   protected readonly inStock = signal<boolean | undefined>(undefined);
   protected readonly onSale = signal(false);
+  protected readonly sort = signal<ProductSort>('Newest');
+  protected readonly sortOptions: ProductSortOption[] = [
+    { value: 'Newest', label: 'Newest' },
+    { value: 'PriceAsc', label: 'Price: Low to high' },
+    { value: 'PriceDesc', label: 'Price: High to low' },
+    { value: 'MostViewed', label: 'Most viewed' },
+    { value: 'TopRated', label: 'Top rated' },
+    { value: 'NameAsc', label: 'Name: A to Z' },
+    { value: 'NameDesc', label: 'Name: Z to A' },
+  ];
 
   ngOnInit(): void {
     this.loadFilters();
@@ -60,6 +76,12 @@ export class ProductCatalogComponent implements OnInit, OnDestroy {
       this.searchDebounceTimer = null;
       this.resetAndLoadProducts();
     }, 300);
+  }
+
+  protected onSortChange(event: Event): void {
+    if (!(event.target instanceof HTMLSelectElement)) return;
+    this.sort.set(event.target.value as ProductSort);
+    this.resetAndLoadProducts();
   }
 
   protected onCategoryChange(event: Event): void {
@@ -210,6 +232,7 @@ export class ProductCatalogComponent implements OnInit, OnDestroy {
     if (this.minRating() !== undefined) query.minRating = this.minRating();
     if (this.inStock() !== undefined) query.inStock = this.inStock();
     if (this.onSale()) query.onSale = true;
+    query.sort = this.sort();
 
     this.productsService
       .getProducts(query)
