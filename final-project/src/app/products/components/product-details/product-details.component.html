@@ -14,9 +14,72 @@
       <p>{{ message }}</p>
     </section>
   } @else if (product(); as product) {
-    <section class="product-details__content">
-      <p class="product-details__eyebrow">Product details</p>
-      <h1>{{ product.name }}</h1>
+    <section class="product-details__content" aria-label="Product details">
+      <div class="product-details__gallery">
+        @if (product.images.length > 0) {
+          @for (image of product.images; track image.id) {
+            <figure class="product-details__image">
+              <img [src]="image.url" [alt]="product.name" loading="lazy" />
+              @if (image.isPrimary) {
+                <figcaption>Primary image</figcaption>
+              }
+            </figure>
+          }
+        } @else {
+          <div class="product-details__image-fallback" role="img" aria-label="No product images">
+            No images available
+          </div>
+        }
+      </div>
+
+      <div class="product-details__information">
+        <p class="product-details__eyebrow">{{ product.category.name || 'Uncategorized' }}</p>
+        <h1>{{ product.name }}</h1>
+        <p class="product-details__brand">{{ product.brand || 'Brand not specified' }}</p>
+
+        <div class="product-details__price">
+          <strong>{{ product.price | number: '1.2-2' }}</strong>
+          @if (product.oldPrice !== null) {
+            <del>{{ product.oldPrice | number: '1.2-2' }}</del>
+          }
+          @if (product.discountPercent !== null) {
+            <span class="product-details__discount">{{ product.discountPercent }}% off</span>
+          }
+        </div>
+
+        <p class="product-details__description">
+          {{ product.description || 'No description available.' }}
+        </p>
+
+        <dl class="product-details__attributes">
+          <div>
+            <dt>SKU</dt>
+            <dd>{{ product.sku || 'Not provided' }}</dd>
+          </div>
+          <div>
+            <dt>Availability</dt>
+            <dd>{{ product.inStock ? 'In stock' : 'Out of stock' }}</dd>
+          </div>
+          <div>
+            <dt>Stock</dt>
+            <dd>{{ product.stock }}</dd>
+          </div>
+          <div>
+            <dt>Rating</dt>
+            <dd>
+              @if (product.reviewCount > 0) {
+                {{ product.averageRating | number: '1.1-1' }} ({{ product.reviewCount }} reviews)
+              } @else {
+                No ratings yet
+              }
+            </dd>
+          </div>
+          <div>
+            <dt>Views</dt>
+            <dd>{{ product.viewCount }}</dd>
+          </div>
+        </dl>
+      </div>
     </section>
   }
 </main>

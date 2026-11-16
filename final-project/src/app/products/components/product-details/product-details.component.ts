@@ -1,3 +1,4 @@
+import { DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -8,7 +9,7 @@ import { ProductDetails } from '../../models/product.model';
 
 @Component({
   selector: 'app-product-details',
-  imports: [RouterLink],
+  imports: [DecimalPipe, RouterLink],
   templateUrl: './product-details.component.html',
   styleUrl: './product-details.component.scss',
 })
