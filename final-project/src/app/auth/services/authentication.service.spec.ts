@@ -116,6 +116,7 @@ describe('AuthenticationService', () => {
       { email: 'person@example.com', password: 'ExamplePass1' },
       authResponse,
     );
+    expect(service.currentUser()).toEqual(authResponse.user);
     expectPost(
       service.refresh({ refreshToken: 'test-refresh-token' }),
       'refresh',

@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Injectable, inject, signal } from '@angular/core';
+import { Observable, tap } from 'rxjs';
 import { API_BASE_URL } from '../../core/api/api-base-url';
 import {
   AuthResponse,
@@ -21,6 +21,7 @@ import {
 export class AuthenticationService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${API_BASE_URL}/api/auth`;
+  readonly currentUser = signal<UserDto | null>(null);
 
   register(request: RegisterRequest): Observable<RegisterResponse> {
     return this.http.post<RegisterResponse>(`${this.baseUrl}/register`, request);
@@ -35,7 +36,9 @@ export class AuthenticationService {
   }
 
   login(request: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.baseUrl}/login`, request);
+    return this.http
+      .post<AuthResponse>(`${this.baseUrl}/login`, request)
+      .pipe(tap((response) => this.currentUser.set(response.user)));
   }
 
   refresh(request: RefreshTokenRequest): Observable<AuthResponse> {
