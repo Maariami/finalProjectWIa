@@ -2,11 +2,16 @@ import { Routes } from '@angular/router';
 
 export const authRoutes: Routes = [
   {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./components/forgot-password/forgot-password.component').then(
+        (component) => component.ForgotPasswordComponent,
+      ),
+  },
+  {
     path: 'login',
     loadComponent: () =>
-      import('./components/login/login.component').then(
-        (component) => component.LoginComponent,
-      ),
+      import('./components/login/login.component').then((component) => component.LoginComponent),
   },
   {
     path: 'confirm-email',
