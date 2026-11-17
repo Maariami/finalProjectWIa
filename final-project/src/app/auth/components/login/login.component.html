@@ -1,0 +1,36 @@
+<main class="auth-page">
+  <section class="auth-card">
+    <p class="auth-card__eyebrow">SHOPSPHERE / ACCOUNT</p>
+    <h1>Sign in</h1>
+
+    <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
+      <label>
+        <span>Email</span>
+        <input formControlName="email" type="email" autocomplete="email" />
+        @if (form.controls.email.touched && form.controls.email.invalid) {
+          <small>Enter a valid email address.</small>
+        }
+      </label>
+
+      <label>
+        <span>Password</span>
+        <input formControlName="password" type="password" autocomplete="current-password" />
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <small>Enter your password.</small>
+        }
+      </label>
+
+      <a routerLink="/forgot-password">Forgot your password?</a>
+
+      @if (errorMessage(); as message) {
+        <p class="auth-error" role="alert">{{ message }}</p>
+      }
+
+      <button type="submit" [disabled]="loading()">
+        {{ loading() ? 'Signing in...' : 'Sign in' }}
+      </button>
+    </form>
+
+    <p class="auth-card__footer">Need an account? <a routerLink="/register">Create one</a></p>
+  </section>
+</main>

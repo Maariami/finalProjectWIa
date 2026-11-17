@@ -1,0 +1,94 @@
+<main class="auth-page">
+  <section class="auth-card">
+    <p class="auth-card__eyebrow">SHOPSPHERE / ACCOUNT</p>
+    <h1>Create your account</h1>
+
+    @if (registration(); as result) {
+      <section class="auth-notice" role="status">
+        @if (confirmationStatus() === 'pending') {
+          <h2>Setting up your account</h2>
+          <p>Finishing registration...</p>
+        } @else if (confirmationStatus() === 'confirmed') {
+          <h2>You're all set</h2>
+          <p>Your account is ready. Sign in to continue.</p>
+          <a routerLink="/login">Sign in</a>
+        } @else if (confirmationStatus() === 'failed') {
+          <h2>Account created</h2>
+          <p class="auth-error" role="alert">{{ confirmationErrorMessage() }}</p>
+          <a
+            [routerLink]="['/resend-confirmation']"
+            [queryParams]="{ email: result.email }"
+          >
+            Resend confirmation email
+          </a>
+        } @else {
+          <h2>Registration received</h2>
+          <p>{{ result.message }}</p>
+          <p>Check your email to confirm your account before signing in.</p>
+          <a routerLink="/login">Continue to sign in</a>
+        }
+      </section>
+    } @else {
+      <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
+        <label>
+          <span>First name</span>
+          <input formControlName="firstName" autocomplete="given-name" />
+          @if (form.controls.firstName.touched && form.controls.firstName.invalid) {
+            <small>Enter a first name containing 1 to 50 characters.</small>
+          }
+        </label>
+
+        <label>
+          <span>Last name</span>
+          <input formControlName="lastName" autocomplete="family-name" />
+          @if (form.controls.lastName.touched && form.controls.lastName.invalid) {
+            <small>Enter a last name containing 1 to 50 characters.</small>
+          }
+        </label>
+
+        <label>
+          <span>Email</span>
+          <input formControlName="email" type="email" autocomplete="email" />
+          @if (form.controls.email.touched && form.controls.email.invalid) {
+            <small>Enter a valid email address.</small>
+          }
+        </label>
+
+        <label>
+          <span>Password</span>
+          <input
+            formControlName="password"
+            type="password"
+            autocomplete="new-password"
+            aria-describedby="register-password-hint"
+          />
+          <small id="register-password-hint">
+            At least 8 characters, including uppercase, lowercase, and a number.
+          </small>
+          @if (form.controls.password.touched && form.controls.password.invalid) {
+            <small>Choose a password that meets the requirements above.</small>
+          }
+        </label>
+
+        @if (errorMessage(); as message) {
+          <p class="auth-error" role="alert">{{ message }}</p>
+        }
+        @if (validationMessages().length > 0) {
+          <ul class="auth-error-list" role="alert">
+            @for (message of validationMessages(); track $index) {
+              <li>{{ message }}</li>
+            }
+          </ul>
+        }
+
+        <button type="submit" [disabled]="loading()">
+          {{ loading() ? 'Creating account...' : 'Create account' }}
+        </button>
+      </form>
+
+      <p class="auth-card__footer">
+        Already have an account? <a routerLink="/login">Sign in</a>
+      </p>
+    }
+  </section>
+</main>

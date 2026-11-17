@@ -1,0 +1,57 @@
+<main class="auth-page">
+  <section class="auth-card">
+    <p class="auth-card__eyebrow">SHOPSPHERE / ACCOUNT</p>
+    <h1>Confirm your email</h1>
+
+    @if (confirmation(); as result) {
+      <section class="auth-notice" role="status">
+        <p>{{ result.message }}</p>
+        <a routerLink="/login">Continue to sign in</a>
+      </section>
+    } @else {
+      <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
+        <label>
+          <span>Email</span>
+          <input formControlName="email" type="email" autocomplete="email" />
+          @if (form.controls.email.touched && form.controls.email.invalid) {
+            <small>Enter the email address used to register.</small>
+          }
+        </label>
+
+        <label>
+          <span>Confirmation token</span>
+          <input
+            formControlName="token"
+            type="password"
+            autocomplete="one-time-code"
+          />
+          @if (form.controls.token.touched && form.controls.token.invalid) {
+            <small>Enter the token from your confirmation email.</small>
+          }
+        </label>
+
+        @if (errorMessage(); as message) {
+          <p class="auth-error" role="alert">{{ message }}</p>
+        }
+        @if (validationMessages().length > 0) {
+          <ul class="auth-error-list" role="alert">
+            @for (message of validationMessages(); track $index) {
+              <li>{{ message }}</li>
+            }
+          </ul>
+        }
+
+        <button type="submit" [disabled]="loading()">
+          {{ loading() ? 'Confirming...' : 'Confirm email' }}
+        </button>
+      </form>
+
+      <p class="auth-card__footer">
+        Need a new confirmation email?
+        <a [routerLink]="['/resend-confirmation']" [queryParams]="{ email: form.controls.email.value }">
+          Resend confirmation
+        </a>
+      </p>
+    }
+  </section>
+</main>

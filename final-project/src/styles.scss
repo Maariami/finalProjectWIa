@@ -43,6 +43,119 @@ a:focus-visible {
   outline-offset: 3px;
 }
 
+.auth-page {
+  width: min(560px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 48px 0 80px;
+}
+
+.auth-card {
+  padding: clamp(24px, 5vw, 44px);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  background: var(--color-surface);
+  box-shadow: 0 12px 32px rgb(41 20 66 / 8%);
+}
+
+.auth-card h1 {
+  margin: 10px 0 24px;
+  font-size: clamp(1.8rem, 5vw, 2.4rem);
+  letter-spacing: -0.04em;
+}
+
+.auth-card__eyebrow {
+  margin: 0;
+  color: var(--color-brand);
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+}
+
+.auth-form {
+  display: grid;
+  gap: 18px;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 7px;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.auth-form input {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+}
+
+.auth-form input:focus {
+  border-color: var(--color-brand);
+  outline: 2px solid var(--color-brand-soft);
+}
+
+.auth-form small {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+.auth-form button {
+  min-height: 46px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--color-brand);
+  color: #fff;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.auth-form button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.auth-error,
+.auth-error-list {
+  margin: 0;
+  color: var(--color-sale);
+}
+
+.auth-notice {
+  display: grid;
+  gap: 14px;
+  line-height: 1.5;
+}
+
+.auth-notice h2,
+.auth-notice p {
+  margin: 0;
+}
+
+.auth-mock-email {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--color-brand-soft);
+  overflow-wrap: anywhere;
+}
+
+.auth-card__footer {
+  margin: 24px 0 0;
+  color: var(--color-muted);
+}
+
+.auth-card a {
+  color: var(--color-brand);
+  font-weight: 650;
+}
+
 .catalog__search {
   display: flex;
   max-width: 520px;

@@ -1,1 +1,22 @@
+<header class="app-header">
+  <a class="app-header__brand" routerLink="/products">ShopSphere</a>
+  <nav class="app-header__navigation" aria-label="Account">
+    @if (authenticationService.currentUser(); as user) {
+      <span>{{ user.fullName }}</span>
+      <a routerLink="/account">My account</a>
+      @if (user.role === 'Admin') {
+        <a routerLink="/admin">Admin</a>
+      }
+      <button type="button" (click)="logout()" [disabled]="loggingOut()">
+        {{ loggingOut() ? 'Signing out...' : 'Sign out' }}
+      </button>
+    } @else {
+      <a routerLink="/login">Sign in</a>
+      <a routerLink="/register">Register</a>
+    }
+  </nav>
+</header>
+@if (logoutError(); as message) {
+  <p class="app-error" role="alert">{{ message }}</p>
+}
 <router-outlet />
