@@ -2,7 +2,7 @@ import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, map, of, switchMap } from 'rxjs';
 import { RegisterResponse } from '../../models/auth.model';
 import { AuthenticationService } from '../../services/authentication.service';
 import { readAuthApiError } from '../../utils/auth-api-error';
@@ -37,6 +37,10 @@ export class RegisterComponent {
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly validationMessages = signal<string[]>([]);
   protected readonly registration = signal<RegisterResponse | null>(null);
+  protected readonly confirmationStatus = signal<
+    'pending' | 'confirmed' | 'required' | 'failed' | null
+  >(null);
+  protected readonly confirmationErrorMessage = signal<string | null>(null);
 
   protected submit(): void {
     this.form.patchValue({
@@ -50,20 +54,44 @@ export class RegisterComponent {
     this.errorMessage.set(null);
     this.validationMessages.set([]);
     this.registration.set(null);
+    this.confirmationStatus.set(null);
+    this.confirmationErrorMessage.set(null);
     this.loading.set(true);
 
     this.authenticationService
       .register(this.form.getRawValue())
       .pipe(
+        switchMap((response) => {
+          this.registration.set(response);
+          this.form.controls.password.reset('');
+
+          const token = response.mockEmail?.token;
+          if (!token) {
+            this.confirmationStatus.set('required');
+            return of('required' as const);
+          }
+
+          this.confirmationStatus.set('pending');
+          return this.authenticationService
+            .confirmEmail({ email: response.email, token })
+            .pipe(map(() => 'confirmed' as const));
+        }),
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.loading.set(false)),
       )
       .subscribe({
-        next: (response) => {
-          this.registration.set(response);
-          this.form.controls.password.reset('');
-        },
+        next: (status) => this.confirmationStatus.set(status),
         error: (error: unknown) => {
+          if (this.registration()) {
+            const apiError = readAuthApiError(
+              error,
+              'Your account was created, but it could not be confirmed automatically.',
+            );
+            this.confirmationStatus.set('failed');
+            this.confirmationErrorMessage.set(apiError.message);
+            return;
+          }
+
           const apiError = readAuthApiError(
             error,
             'Registration could not be completed. Please try again.',
