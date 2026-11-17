@@ -1,0 +1,25 @@
+<main class="auth-page">
+  <section class="auth-card">
+    <p class="auth-card__eyebrow">SHOPSPHERE / ACCOUNT</p>
+    <h1>Your account</h1>
+
+    @if (loading()) {
+      <p role="status">Loading your account...</p>
+    }
+    @if (errorMessage(); as message) {
+      <p class="auth-error" role="alert">{{ message }}</p>
+    }
+    @if (authenticationService.currentUser(); as user) {
+      <section class="auth-notice">
+        <p>{{ user.fullName }}</p>
+        <p>{{ user.email }}</p>
+        <p>{{ user.role }}</p>
+        @if (user.phoneNumber) {
+          <p>{{ user.phoneNumber }}</p>
+        }
+      </section>
+    }
+
+    <p class="auth-card__footer"><a routerLink="/products">Continue shopping</a></p>
+  </section>
+</main>

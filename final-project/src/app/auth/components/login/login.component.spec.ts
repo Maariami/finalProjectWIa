@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 import { throwError, of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthenticationService } from '../../services/authentication.service';
@@ -10,11 +11,7 @@ const authenticationService = {
   login: vi.fn<AuthenticationService['login']>(),
 };
 
-const setInput = (
-  fixture: ComponentFixture<LoginComponent>,
-  name: string,
-  value: string,
-): void => {
+const setInput = (fixture: ComponentFixture<LoginComponent>, name: string, value: string): void => {
   const input = fixture.nativeElement.querySelector(
     `[formControlName="${name}"]`,
   ) as HTMLInputElement | null;
@@ -72,9 +69,11 @@ describe('LoginComponent', () => {
     });
     expect(navigateByUrl).toHaveBeenCalledWith('/products');
     expect(
-      (fixture.nativeElement.querySelector(
-        '[formControlName="password"]',
-      ) as HTMLInputElement | null)?.value,
+      (
+        fixture.nativeElement.querySelector(
+          '[formControlName="password"]',
+        ) as HTMLInputElement | null
+      )?.value,
     ).toBe('');
   });
 
@@ -96,9 +95,49 @@ describe('LoginComponent', () => {
     fixture.nativeElement.querySelector('button[type="submit"]').click();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain(
-      'The email or password is incorrect.',
-    );
+    expect(fixture.nativeElement.textContent).toContain('The email or password is incorrect.');
     expect(navigateByUrl).not.toHaveBeenCalled();
+  });
+
+  it('returns to an internal protected URL after successful login', async () => {
+    authenticationService.login.mockReturnValue(
+      of({
+        accessToken: 'access-token',
+        accessTokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+        refreshToken: 'refresh-token',
+        refreshTokenExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        user: {
+          id: 'user-id',
+          email: 'person@example.com',
+          firstName: 'First',
+          lastName: 'Last',
+          fullName: 'First Last',
+          phoneNumber: null,
+          avatarUrl: null,
+          role: 'Customer',
+          emailConfirmed: true,
+          createdAt: new Date().toISOString(),
+        },
+      }),
+    );
+    const router = TestBed.inject(Router);
+    router.resetConfig([{ path: 'login', component: LoginComponent }]);
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/login?returnUrl=%2Faccount', LoginComponent);
+    const navigateByUrl = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    const emailInput = harness.routeNativeElement?.querySelector(
+      'input[formControlName="email"]',
+    ) as HTMLInputElement | null;
+    const passwordInput = harness.routeNativeElement?.querySelector(
+      'input[formControlName="password"]',
+    ) as HTMLInputElement | null;
+    if (!emailInput || !passwordInput) throw new Error('Missing login inputs');
+    emailInput.value = 'person@example.com';
+    emailInput.dispatchEvent(new Event('input'));
+    passwordInput.value = 'ExamplePass1';
+    passwordInput.dispatchEvent(new Event('input'));
+    harness.routeNativeElement?.querySelector<HTMLButtonElement>('button[type="submit"]')?.click();
+
+    expect(navigateByUrl).toHaveBeenCalledWith('/account');
   });
 });

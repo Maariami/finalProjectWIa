@@ -1,7 +1,7 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthenticationService } from '../../services/authentication.service';
 import { readAuthApiError } from '../../utils/auth-api-error';
@@ -15,6 +15,7 @@ export class LoginComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly authenticationService = inject(AuthenticationService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
   protected readonly form = this.formBuilder.nonNullable.group({
@@ -41,7 +42,10 @@ export class LoginComponent {
       .subscribe({
         next: () => {
           this.form.controls.password.reset('');
-          void this.router.navigateByUrl('/products');
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+          const destination =
+            returnUrl?.startsWith('/') && !returnUrl.startsWith('//') ? returnUrl : '/products';
+          void this.router.navigateByUrl(destination);
         },
         error: (error: unknown) => {
           const apiError = readAuthApiError(
