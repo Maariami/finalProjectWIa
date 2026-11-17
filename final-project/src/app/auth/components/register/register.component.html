@@ -5,18 +5,28 @@
 
     @if (registration(); as result) {
       <section class="auth-notice" role="status">
-        <h2>Registration received</h2>
-        <p>{{ result.message }}</p>
-        <p>Confirm your email before signing in.</p>
-        @if (result.mockEmail; as mockEmail) {
-          <div class="auth-mock-email">
-            <p>{{ mockEmail.subject }} — {{ mockEmail.to }}</p>
-            @if (mockEmail.link) {
-              <a [href]="mockEmail.link">Open the confirmation link</a>
-            }
-          </div>
+        @if (confirmationStatus() === 'pending') {
+          <h2>Setting up your account</h2>
+          <p>Finishing registration...</p>
+        } @else if (confirmationStatus() === 'confirmed') {
+          <h2>You're all set</h2>
+          <p>Your account is ready. Sign in to continue.</p>
+          <a routerLink="/login">Sign in</a>
+        } @else if (confirmationStatus() === 'failed') {
+          <h2>Account created</h2>
+          <p class="auth-error" role="alert">{{ confirmationErrorMessage() }}</p>
+          <a
+            [routerLink]="['/resend-confirmation']"
+            [queryParams]="{ email: result.email }"
+          >
+            Resend confirmation email
+          </a>
+        } @else {
+          <h2>Registration received</h2>
+          <p>{{ result.message }}</p>
+          <p>Check your email to confirm your account before signing in.</p>
+          <a routerLink="/login">Continue to sign in</a>
         }
-        <a routerLink="/login">Continue to sign in</a>
       </section>
     } @else {
       <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">

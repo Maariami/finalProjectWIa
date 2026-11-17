@@ -8,6 +8,7 @@ import { RegisterComponent } from './register.component';
 
 const authenticationService = {
   register: vi.fn<AuthenticationService['register']>(),
+  confirmEmail: vi.fn<AuthenticationService['confirmEmail']>(),
 };
 
 const setInput = (
@@ -27,6 +28,7 @@ const setInput = (
 describe('RegisterComponent', () => {
   beforeEach(() => {
     authenticationService.register.mockReset();
+    authenticationService.confirmEmail.mockReset();
     TestBed.configureTestingModule({
       imports: [RegisterComponent],
       providers: [
@@ -52,7 +54,7 @@ describe('RegisterComponent', () => {
     );
   });
 
-  it('submits the documented payload and displays the registration result', () => {
+  it('automatically confirms mocked registrations and does not expose a broken link', () => {
     authenticationService.register.mockReturnValue(
       of({
         userId: '4a77b32f-f9cc-44fb-bddc-0f86507967b1',
@@ -67,6 +69,7 @@ describe('RegisterComponent', () => {
         },
       }),
     );
+    authenticationService.confirmEmail.mockReturnValue(of({ message: 'Email confirmed.' }));
     const fixture = TestBed.createComponent(RegisterComponent);
     fixture.detectChanges();
     setInput(fixture, 'email', ' person@example.com ');
@@ -82,13 +85,79 @@ describe('RegisterComponent', () => {
       lastName: 'Last',
       password: 'ExamplePass1',
     });
-    expect(fixture.nativeElement.textContent).toContain('Please confirm your email.');
-    expect(
-      fixture.nativeElement.querySelector('.auth-mock-email a')?.getAttribute('href'),
-    ).toBe('/confirm-email?email=person%40example.com&token=test-token');
+    expect(authenticationService.confirmEmail).toHaveBeenCalledWith({
+      email: 'person@example.com',
+      token: 'test-token',
+    });
+    expect(fixture.nativeElement.textContent).toContain("You're all set");
+    expect(fixture.nativeElement.querySelector('.auth-mock-email a')).toBeNull();
+    expect(fixture.nativeElement.querySelector('a[routerLink="/login"]')).not.toBeNull();
     expect(
       fixture.nativeElement.querySelector('[formControlName="password"]'),
     ).toBeNull();
+  });
+
+  it('keeps real-email confirmation required when the API does not provide a mock token', () => {
+    authenticationService.register.mockReturnValue(
+      of({
+        userId: '4a77b32f-f9cc-44fb-bddc-0f86507967b1',
+        email: 'person@example.com',
+        message: 'Please confirm your email.',
+      }),
+    );
+    const fixture = TestBed.createComponent(RegisterComponent);
+    fixture.detectChanges();
+    setInput(fixture, 'email', 'person@example.com');
+    setInput(fixture, 'firstName', 'First');
+    setInput(fixture, 'lastName', 'Last');
+    setInput(fixture, 'password', 'ExamplePass1');
+    fixture.nativeElement.querySelector('button[type="submit"]').click();
+    fixture.detectChanges();
+
+    expect(authenticationService.confirmEmail).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain(
+      'Check your email to confirm your account before signing in.',
+    );
+    expect(fixture.nativeElement.querySelector('.auth-mock-email a')).toBeNull();
+  });
+
+  it('shows recovery guidance if automatic confirmation fails', () => {
+    authenticationService.register.mockReturnValue(
+      of({
+        userId: '4a77b32f-f9cc-44fb-bddc-0f86507967b1',
+        email: 'person@example.com',
+        message: 'Please confirm your email.',
+        mockEmail: {
+          to: 'person@example.com',
+          subject: 'Confirm account',
+          body: 'Follow the link.',
+          link: 'https://example.com/confirm-email',
+          token: 'test-token',
+        },
+      }),
+    );
+    authenticationService.confirmEmail.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 400,
+            error: { code: 'invalid_token', detail: 'Confirmation token expired.' },
+          }),
+      ),
+    );
+    const fixture = TestBed.createComponent(RegisterComponent);
+    fixture.detectChanges();
+    setInput(fixture, 'email', 'person@example.com');
+    setInput(fixture, 'firstName', 'First');
+    setInput(fixture, 'lastName', 'Last');
+    setInput(fixture, 'password', 'ExamplePass1');
+    fixture.nativeElement.querySelector('button[type="submit"]').click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Account created');
+    expect(fixture.nativeElement.textContent).toContain('Confirmation token expired.');
+    expect(fixture.nativeElement.textContent).toContain('Resend confirmation email');
+    expect(fixture.nativeElement.textContent).not.toContain("You're all set");
   });
 
   it('displays API validation errors without reporting success', () => {
