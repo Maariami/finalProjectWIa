@@ -1,8 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
-import {
-  HttpTestingController,
-  provideHttpClientTesting,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Observable } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -209,5 +206,37 @@ describe('AuthenticationService', () => {
     expect(request.request.method).toBe('GET');
     request.flush(user);
     expect(result).toEqual(user);
+    expect(service.currentUser()).toEqual(user);
+  });
+
+  it('clears local session state when the current-user endpoint rejects authentication', () => {
+    service.login({ email: 'person@example.com', password: 'ExamplePass1' }).subscribe();
+    httpTestingController.expectOne(`${baseUrl}/login`).flush({
+      accessToken: 'access-token',
+      accessTokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      refreshToken: 'refresh-token',
+      refreshTokenExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      user: {
+        id: 'user-id',
+        email: 'person@example.com',
+        firstName: 'First',
+        lastName: 'Last',
+        fullName: 'First Last',
+        phoneNumber: null,
+        avatarUrl: null,
+        role: 'Customer',
+        emailConfirmed: true,
+        createdAt: new Date().toISOString(),
+      },
+    } satisfies AuthResponse);
+    service.getCurrentUser().subscribe({ error: () => undefined });
+
+    httpTestingController
+      .expectOne(`${baseUrl}/me`)
+      .flush({ code: 'invalid_token' }, { status: 401, statusText: 'Unauthorized' });
+
+    expect(service.currentUser()).toBeNull();
+    expect(service.accessToken()).toBeNull();
+    expect(service.refreshToken()).toBeNull();
   });
 });

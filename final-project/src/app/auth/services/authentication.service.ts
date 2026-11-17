@@ -1,6 +1,6 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, finalize, tap } from 'rxjs';
+import { Observable, catchError, finalize, tap, throwError } from 'rxjs';
 import { API_BASE_URL } from '../../core/api/api-base-url';
 import {
   AuthResponse,
@@ -66,7 +66,15 @@ export class AuthenticationService {
   }
 
   getCurrentUser(): Observable<UserDto> {
-    return this.http.get<UserDto>(`${this.baseUrl}/me`);
+    return this.http.get<UserDto>(`${this.baseUrl}/me`).pipe(
+      tap((user) => this.currentUser.set(user)),
+      catchError((error: unknown) => {
+        if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)) {
+          this.clearSession();
+        }
+        return throwError(() => error);
+      }),
+    );
   }
 
   private storeSession(response: AuthResponse): void {
