@@ -28,6 +28,13 @@ export const authRoutes: Routes = [
       ),
   },
   {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./components/reset-password/reset-password.component').then(
+        (component) => component.ResetPasswordComponent,
+      ),
+  },
+  {
     path: 'resend-confirmation',
     loadComponent: () =>
       import('./components/resend-confirmation/resend-confirmation.component').then(
