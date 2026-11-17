@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, finalize, tap } from 'rxjs';
 import { API_BASE_URL } from '../../core/api/api-base-url';
 import {
   AuthResponse,
@@ -52,7 +52,9 @@ export class AuthenticationService {
   }
 
   logout(request: RefreshTokenRequest): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/logout`, request);
+    return this.http
+      .post<void>(`${this.baseUrl}/logout`, request)
+      .pipe(finalize(() => this.clearSession()));
   }
 
   forgotPassword(request: EmailRequest): Observable<MessageResponse> {
