@@ -34,15 +34,15 @@
         <p class="admin-state">No products found.</p>
       } @else {
         <div class="admin-table-wrap">
-          <table class="admin-table">
+          <table class="admin-table admin-table--products">
             <thead>
               <tr><th>Product</th><th>SKU</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
             </thead>
             <tbody>
               @for (product of page.items; track product.id) {
                 <tr>
-                  <td>
-                    <a [routerLink]="['/admin/products', product.id]">{{ product.name }}</a>
+                  <td class="product-name">
+                    <a class="product-name__link" [routerLink]="['/admin/products', product.id]">{{ product.name }}</a>
                     <small>{{ product.brand }}</small>
                   </td>
                   <td>{{ product.sku }}</td>
@@ -50,11 +50,13 @@
                   <td>{{ product.price | number: '1.2-2' }}</td>
                   <td>{{ product.stock }}</td>
                   <td><span class="status" [class.status--inactive]="!product.isActive">{{ product.isActive ? 'Active' : 'Inactive' }}</span></td>
-                  <td class="admin-actions">
-                    <a class="admin-secondary-link" [routerLink]="['/admin/products', product.id]">Edit</a>
-                    <button class="admin-danger-button" type="button" [disabled]="deletingId() === product.id" (click)="deleteProduct(product)">
-                      {{ deletingId() === product.id ? 'Deleting...' : 'Delete' }}
-                    </button>
+                  <td>
+                    <div class="admin-actions">
+                      <a class="admin-secondary-link" [routerLink]="['/admin/products', product.id]">Edit</a>
+                      <button class="admin-danger-button" type="button" [disabled]="deletingId() === product.id" (click)="deleteProduct(product)">
+                        {{ deletingId() === product.id ? 'Deleting...' : 'Delete' }}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               }
