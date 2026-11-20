@@ -103,12 +103,28 @@
               <p>{{ ownReview.comment }}</p>
             }
             @if (!editingOwnReview()) {
-              <button type="button" class="product-reviews__edit-button" (click)="startEditingOwnReview()">
-                Edit review
-              </button>
+              <div class="product-reviews__actions">
+                <button type="button" class="product-reviews__edit-button" (click)="startEditingOwnReview()">
+                  Edit review
+                </button>
+                <button
+                  type="button"
+                  class="product-reviews__delete-button"
+                  [disabled]="deleteSubmitting()"
+                  (click)="deleteOwnReview()"
+                >
+                  {{ deleteSubmitting() ? 'Deleting...' : 'Delete review' }}
+                </button>
+              </div>
             }
             @if (editSuccess()) {
               <p class="product-reviews__success" role="status">Your review was updated.</p>
+            }
+            @if (deleteSuccess()) {
+              <p class="product-reviews__success" role="status">Your review was deleted.</p>
+            }
+            @if (deleteError(); as message) {
+              <p class="product-reviews__validation" role="alert">{{ message }}</p>
             }
           </article>
           @if (editingOwnReview()) {

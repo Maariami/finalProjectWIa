@@ -21,6 +21,7 @@ const reviewsService = {
   createReview: vi.fn<ReviewsService['createReview']>(),
   getMyReview: vi.fn<ReviewsService['getMyReview']>(),
   updateReview: vi.fn<ReviewsService['updateReview']>(),
+  deleteReview: vi.fn<ReviewsService['deleteReview']>(),
 };
 
 const authenticationService = {
@@ -59,6 +60,7 @@ describe('ProductDetailsComponent', () => {
     reviewsService.createReview.mockReset();
     reviewsService.getMyReview.mockReset();
     reviewsService.updateReview.mockReset();
+    reviewsService.deleteReview.mockReset();
     authenticationService.getValidAccessToken.mockReset();
     authenticationService.getValidAccessToken.mockReturnValue(null);
     authenticationService.currentUser.set(null);

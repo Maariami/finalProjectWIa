@@ -42,6 +42,9 @@ export class ProductDetailsComponent implements OnInit {
   protected readonly editSubmitting = signal(false);
   protected readonly editError = signal<string | null>(null);
   protected readonly editSuccess = signal(false);
+  protected readonly deleteSubmitting = signal(false);
+  protected readonly deleteError = signal<string | null>(null);
+  protected readonly deleteSuccess = signal(false);
 
   protected readonly editReviewForm = this.formBuilder.nonNullable.group({
     rating: [0, [Validators.required, Validators.min(1), Validators.max(5)]],
@@ -61,6 +64,9 @@ export class ProductDetailsComponent implements OnInit {
       this.editSubmitting.set(false);
       this.editError.set(null);
       this.editSuccess.set(false);
+      this.deleteSubmitting.set(false);
+      this.deleteError.set(null);
+      this.deleteSuccess.set(false);
       return;
     }
 
@@ -311,6 +317,43 @@ export class ProductDetailsComponent implements OnInit {
         finalize(() => {
           if (this.product()?.id === product.id) {
             this.editSubmitting.set(false);
+          }
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  protected deleteOwnReview(): void {
+    const product = this.product();
+    const review = this.ownReview();
+    if (!product || !review) return;
+
+    this.deleteSubmitting.set(true);
+    this.deleteError.set(null);
+    this.deleteSuccess.set(false);
+
+    this.reviewsService
+      .deleteReview(product.id, review.id)
+      .pipe(
+        tap(() => {
+          if (this.product()?.id === product.id) {
+            this.ownReview.set(null);
+            this.deleteSuccess.set(true);
+            this.editingOwnReview.set(false);
+            this.loadReviews(product);
+            this.loadOwnReview(product.id);
+          }
+        }),
+        catchError((error: unknown) => {
+          if (this.product()?.id === product.id) {
+            this.deleteError.set(this.getReviewApiError(error));
+          }
+          return EMPTY;
+        }),
+        finalize(() => {
+          if (this.product()?.id === product.id) {
+            this.deleteSubmitting.set(false);
           }
         }),
         takeUntilDestroyed(this.destroyRef),
