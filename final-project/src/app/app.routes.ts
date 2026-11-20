@@ -73,6 +73,13 @@ export const routes: Routes = [
             (component) => component.AdminBannersComponent,
           ),
       },
+      {
+        path: 'reviews',
+        loadComponent: () =>
+          import('./admin/components/reviews/admin-reviews.component').then(
+            (component) => component.AdminReviewsComponent,
+          ),
+      },
     ],
   },
   ...productsRoutes,

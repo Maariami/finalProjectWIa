@@ -81,3 +81,11 @@ export type AdminBanner = {
   createdAt: string;
   updatedAt: string | null;
 };
+
+export type AdminReviewQuery = {
+  page?: number;
+  pageSize?: number;
+  productId?: string;
+  userId?: string;
+  rating?: number;
+};
