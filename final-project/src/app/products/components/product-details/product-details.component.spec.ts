@@ -7,6 +7,7 @@ import { of, Subject, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProductDetails } from '../../models/product.model';
 import { ProductReviews } from '../../models/review.model';
+import { UserDto } from '../../../auth/models/auth.model';
 import { ProductsService } from '../../services/products.service';
 import { ReviewsService } from '../../services/reviews.service';
 import { AuthenticationService } from '../../../auth/services/authentication.service';
@@ -26,8 +27,9 @@ const reviewsService = {
 
 const authenticationService = {
   getValidAccessToken: vi.fn<AuthenticationService['getValidAccessToken']>(),
-  currentUser: signal(null),
-  accessToken: signal(null),
+  getValidRefreshToken: vi.fn<AuthenticationService['getValidRefreshToken']>(),
+  currentUser: signal<UserDto | null>(null),
+  accessToken: signal<string | null>(null),
 };
 
 const createProduct = (name: string): ProductDetails => ({
@@ -63,6 +65,8 @@ describe('ProductDetailsComponent', () => {
     reviewsService.deleteReview.mockReset();
     authenticationService.getValidAccessToken.mockReset();
     authenticationService.getValidAccessToken.mockReturnValue(null);
+    authenticationService.getValidRefreshToken.mockReset();
+    authenticationService.getValidRefreshToken.mockReturnValue(null);
     authenticationService.currentUser.set(null);
     authenticationService.accessToken.set(null);
     reviewsService.getProductReviews.mockReturnValue(
@@ -230,5 +234,44 @@ describe('ProductDetailsComponent', () => {
     expect(harness.routeNativeElement?.textContent).toContain('1 review');
     expect(harness.routeNativeElement?.textContent).toContain('Test Customer');
     expect(harness.routeNativeElement?.textContent).toContain('Excellent product');
+  });
+
+  it('does not ask a signed-in user to sign in when their review is present', async () => {
+    const product = createProduct('My reviewed product');
+    product.id = 'my-reviewed-product-id';
+    productsService.getProductByIdOrSlug.mockReturnValue(of(product));
+    authenticationService.getValidAccessToken.mockReturnValue('active-access-token');
+    authenticationService.getValidRefreshToken.mockReturnValue('active-refresh-token');
+    authenticationService.accessToken.set('active-access-token');
+    authenticationService.currentUser.set({
+      id: 'author-id',
+      email: 'person@example.com',
+      firstName: 'Test',
+      lastName: 'Customer',
+      fullName: 'Test Customer',
+      phoneNumber: null,
+      avatarUrl: null,
+      role: 'Customer',
+      emailConfirmed: true,
+      createdAt: '2026-01-01T00:00:00Z',
+    });
+    reviewsService.getMyReview.mockReturnValue(
+      of({
+        id: 'my-review-id',
+        productId: product.id,
+        productName: product.name,
+        rating: 4,
+        comment: 'My review',
+        author: { id: 'author-id', fullName: 'Test Customer', avatarUrl: null },
+        createdAt: '2026-01-02T00:00:00Z',
+        updatedAt: null,
+      }),
+    );
+
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/products/my-reviewed-product', ProductDetailsComponent);
+
+    expect(harness.routeNativeElement?.textContent).toContain('Your review');
+    expect(harness.routeNativeElement?.textContent).not.toContain('Sign in to write a review');
   });
 });

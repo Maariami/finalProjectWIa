@@ -165,46 +165,48 @@
         }
       }
 
-      @if (isAuthenticated() && !ownReview()) {
-        <form class="product-reviews__form" [formGroup]="reviewForm" (ngSubmit)="submitReview()" novalidate>
-          <h3>Write a review</h3>
-          <fieldset>
-            <legend>Rating</legend>
-            @for (star of [1, 2, 3, 4, 5]; track star) {
-              <label>
-                <input type="radio" formControlName="rating" [value]="star" />
-                {{ star }}
-              </label>
+      @if (isAuthenticated()) {
+        @if (!ownReview()) {
+          <form class="product-reviews__form" [formGroup]="reviewForm" (ngSubmit)="submitReview()" novalidate>
+            <h3>Write a review</h3>
+            <fieldset>
+              <legend>Rating</legend>
+              @for (star of [1, 2, 3, 4, 5]; track star) {
+                <label>
+                  <input type="radio" formControlName="rating" [value]="star" />
+                  {{ star }}
+                </label>
+              }
+            </fieldset>
+            @if (reviewForm.controls.rating.touched && reviewForm.controls.rating.invalid) {
+              <p class="product-reviews__validation">Choose a rating from 1 to 5.</p>
             }
-          </fieldset>
-          @if (reviewForm.controls.rating.touched && reviewForm.controls.rating.invalid) {
-            <p class="product-reviews__validation">Choose a rating from 1 to 5.</p>
-          }
 
-          <label class="product-reviews__field">
-            <span>Comment</span>
-            <textarea
-              formControlName="comment"
-              rows="4"
-              maxlength="1000"
-              placeholder="Share your experience"
-            ></textarea>
-          </label>
-          @if (reviewForm.controls.comment.touched && reviewForm.controls.comment.hasError('maxlength')) {
-            <p class="product-reviews__validation">The comment cannot exceed 1000 characters.</p>
-          }
+            <label class="product-reviews__field">
+              <span>Comment</span>
+              <textarea
+                formControlName="comment"
+                rows="4"
+                maxlength="1000"
+                placeholder="Share your experience"
+              ></textarea>
+            </label>
+            @if (reviewForm.controls.comment.touched && reviewForm.controls.comment.hasError('maxlength')) {
+              <p class="product-reviews__validation">The comment cannot exceed 1000 characters.</p>
+            }
 
-          @if (reviewSubmitError(); as message) {
-            <p class="product-reviews__validation" role="alert">{{ message }}</p>
-          }
-          @if (reviewSubmitSuccess()) {
-            <p class="product-reviews__success" role="status">Your review was submitted.</p>
-          }
+            @if (reviewSubmitError(); as message) {
+              <p class="product-reviews__validation" role="alert">{{ message }}</p>
+            }
+            @if (reviewSubmitSuccess()) {
+              <p class="product-reviews__success" role="status">Your review was submitted.</p>
+            }
 
-          <button type="submit" [disabled]="reviewSubmitting()">
-            {{ reviewSubmitting() ? 'Submitting...' : 'Submit review' }}
-          </button>
-        </form>
+            <button type="submit" [disabled]="reviewSubmitting()">
+              {{ reviewSubmitting() ? 'Submitting...' : 'Submit review' }}
+            </button>
+          </form>
+        }
       } @else {
         <p class="product-reviews__auth">
           <a routerLink="/login">Sign in</a> to write a review.

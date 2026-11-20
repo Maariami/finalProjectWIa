@@ -207,7 +207,10 @@ export class ProductDetailsComponent implements OnInit {
   }
 
   protected isAuthenticated(): boolean {
-    return this.authenticationService.getValidAccessToken() !== null;
+    return (
+      this.authenticationService.getValidAccessToken() !== null ||
+      this.authenticationService.getValidRefreshToken() !== null
+    );
   }
 
   protected submitReview(): void {
