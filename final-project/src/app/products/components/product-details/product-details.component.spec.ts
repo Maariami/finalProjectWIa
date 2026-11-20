@@ -5,11 +5,17 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { of, Subject, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProductDetails } from '../../models/product.model';
+import { ProductReviews } from '../../models/review.model';
 import { ProductsService } from '../../services/products.service';
+import { ReviewsService } from '../../services/reviews.service';
 import { ProductDetailsComponent } from './product-details.component';
 
 const productsService = {
   getProductByIdOrSlug: vi.fn<ProductsService['getProductByIdOrSlug']>(),
+};
+
+const reviewsService = {
+  getProductReviews: vi.fn<ReviewsService['getProductReviews']>(),
 };
 
 const createProduct = (name: string): ProductDetails => ({
@@ -38,6 +44,23 @@ const createProduct = (name: string): ProductDetails => ({
 describe('ProductDetailsComponent', () => {
   beforeEach(() => {
     productsService.getProductByIdOrSlug.mockReset();
+    reviewsService.getProductReviews.mockReset();
+    reviewsService.getProductReviews.mockReturnValue(
+      of({
+        reviews: {
+          items: [],
+          page: 1,
+          pageSize: 100,
+          totalCount: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        },
+        averageRating: 0,
+        reviewCount: 0,
+        distribution: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 },
+      }),
+    );
     TestBed.configureTestingModule({
       imports: [ProductDetailsComponent],
       providers: [
@@ -48,6 +71,7 @@ describe('ProductDetailsComponent', () => {
           },
         ]),
         { provide: ProductsService, useValue: productsService },
+        { provide: ReviewsService, useValue: reviewsService },
       ],
     });
   });
@@ -137,5 +161,53 @@ describe('ProductDetailsComponent', () => {
     expect(harness.routeNativeElement?.textContent).toContain('Not provided');
     expect(harness.routeNativeElement?.textContent).not.toContain('% off');
     expect(harness.routeNativeElement?.textContent).not.toContain('reviews)');
+  });
+
+  it('displays review summary, distribution, and review items', async () => {
+    const product = createProduct('Reviewed product');
+    product.id = 'reviewed-product-id';
+    productsService.getProductByIdOrSlug.mockReturnValue(of(product));
+    const response: ProductReviews = {
+      reviews: {
+        items: [
+          {
+            id: 'review-id',
+            productId: product.id,
+            productName: product.name,
+            rating: 5,
+            comment: 'Excellent product',
+            author: {
+              id: 'author-id',
+              fullName: 'Test Customer',
+              avatarUrl: null,
+            },
+            createdAt: '2026-01-02T00:00:00Z',
+            updatedAt: null,
+          },
+        ],
+        page: 1,
+        pageSize: 100,
+        totalCount: 1,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      },
+      averageRating: 5,
+      reviewCount: 1,
+      distribution: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 1 },
+    };
+    reviewsService.getProductReviews.mockReturnValue(of(response));
+
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/products/reviewed-product', ProductDetailsComponent);
+
+    expect(reviewsService.getProductReviews).toHaveBeenCalledWith(product.id, {
+      page: 1,
+      pageSize: 100,
+    });
+    expect(harness.routeNativeElement?.textContent).toContain('5.0');
+    expect(harness.routeNativeElement?.textContent).toContain('1 review');
+    expect(harness.routeNativeElement?.textContent).toContain('Test Customer');
+    expect(harness.routeNativeElement?.textContent).toContain('Excellent product');
   });
 });

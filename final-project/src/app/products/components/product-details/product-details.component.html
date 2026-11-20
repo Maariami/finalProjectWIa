@@ -81,5 +81,64 @@
         </dl>
       </div>
     </section>
+
+    <section class="product-reviews" aria-labelledby="product-reviews-heading">
+      <div class="product-reviews__header">
+        <div>
+          <p class="product-reviews__eyebrow">Customer feedback</p>
+          <h2 id="product-reviews-heading">Product reviews</h2>
+        </div>
+      </div>
+
+      @if (reviewsLoading()) {
+        <p class="product-reviews__message" role="status">Loading reviews...</p>
+      } @else if (reviewsError(); as message) {
+        <p class="product-reviews__message product-reviews__message--error" role="alert">{{ message }}</p>
+      } @else if (productReviews(); as reviews) {
+        <div class="product-reviews__summary">
+          <div class="product-reviews__average">
+            <strong>{{ reviews.averageRating | number: '1.1-1' }}</strong>
+            <span>{{ reviews.reviewCount }} {{ reviews.reviewCount === 1 ? 'review' : 'reviews' }}</span>
+          </div>
+
+          <div class="product-reviews__distribution" aria-label="Rating distribution">
+            @for (star of [5, 4, 3, 2, 1]; track star) {
+              <div class="product-reviews__distribution-row">
+                <span>{{ star }} star{{ star === 1 ? '' : 's' }}</span>
+                <div class="product-reviews__distribution-bar" aria-hidden="true">
+                  <span
+                    [style.width.%]="reviews.reviewCount > 0 ? (distributionCount(star) / reviews.reviewCount) * 100 : 0"
+                  ></span>
+                </div>
+                <strong>{{ distributionCount(star) }}</strong>
+              </div>
+            }
+          </div>
+        </div>
+
+        @if (reviews.reviews.items.length === 0) {
+          <p class="product-reviews__message">No reviews yet. Be the first to review this product.</p>
+        } @else {
+          <div class="product-reviews__list">
+            @for (review of reviews.reviews.items; track review.id) {
+              <article class="product-reviews__item">
+                <div class="product-reviews__item-header">
+                  <div>
+                    <strong>{{ review.author.fullName }}</strong>
+                    <span>{{ review.rating }} / 5</span>
+                  </div>
+                  <time [attr.datetime]="review.createdAt">
+                    {{ review.createdAt | date: 'mediumDate' }}
+                  </time>
+                </div>
+                @if (review.comment) {
+                  <p>{{ review.comment }}</p>
+                }
+              </article>
+            }
+          </div>
+        }
+      }
+    </section>
   }
 </main>
