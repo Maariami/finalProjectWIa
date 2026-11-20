@@ -24,6 +24,13 @@ export const routes: Routes = [
             (component) => component.AdminDashboardComponent,
           ),
       },
+      {
+        path: 'categories',
+        loadComponent: () =>
+          import('./admin/components/categories/admin-categories.component').then(
+            (component) => component.AdminCategoriesComponent,
+          ),
+      },
     ],
   },
   ...productsRoutes,

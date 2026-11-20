@@ -32,3 +32,17 @@ export type AdminDashboard = {
   lowStockProducts: AdminDashboardProduct[];
   productsPerCategory: AdminCategoryStat[];
 };
+
+export type AdminCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  productCount: number;
+  createdAt: string;
+};
+
+export type AdminCategoryRequest = {
+  name: string;
+  description?: string | null;
+};
