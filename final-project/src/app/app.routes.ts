@@ -80,6 +80,20 @@ export const routes: Routes = [
             (component) => component.AdminReviewsComponent,
           ),
       },
+      {
+        path: 'users/:id',
+        loadComponent: () =>
+          import('./admin/components/users/admin-user-details.component').then(
+            (component) => component.AdminUserDetailsComponent,
+          ),
+      },
+      {
+        path: 'users',
+        loadComponent: () =>
+          import('./admin/components/users/admin-users.component').then(
+            (component) => component.AdminUsersComponent,
+          ),
+      },
     ],
   },
   ...productsRoutes,

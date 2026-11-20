@@ -1,0 +1,70 @@
+<section class="admin-page">
+  <header class="admin-page__header">
+    <div>
+      <p class="admin-page__eyebrow">Access management</p>
+      <h1>User details</h1>
+    </div>
+    <a routerLink="/admin/users">Back to users</a>
+  </header>
+
+  @if (loading()) {
+    <p class="admin-panel" role="status">Loading user...</p>
+  } @else if (errorMessage(); as message) {
+    <p class="admin-panel admin-error" role="alert">{{ message }}</p>
+  } @else if (user(); as account) {
+    <section class="admin-panel user-details">
+      <div class="user-details__heading">
+        <div>
+          <h2>{{ account.fullName }}</h2>
+          <p>{{ account.email }}</p>
+        </div>
+        <div class="user-details__badges">
+          <span>{{ account.role }}</span>
+          <span [class.user-details__badge--blocked]="account.isBlocked">{{ account.isBlocked ? 'Blocked' : 'Active' }}</span>
+          <span>{{ account.emailConfirmed ? 'Email confirmed' : 'Email unconfirmed' }}</span>
+        </div>
+      </div>
+
+      <dl class="user-details__stats">
+        <div><dt>Created</dt><dd>{{ account.createdAt | date: 'medium' }}</dd></div>
+        <div><dt>Last login</dt><dd>{{ account.lastLoginAt ? (account.lastLoginAt | date: 'medium') : 'Never' }}</dd></div>
+        <div><dt>Phone</dt><dd>{{ account.phoneNumber || 'Not provided' }}</dd></div>
+        <div><dt>Reviews</dt><dd>{{ account.reviewCount }}</dd></div>
+        <div><dt>Favorites</dt><dd>{{ account.favoriteCount }}</dd></div>
+        <div><dt>Cart items</dt><dd>{{ account.cartItemCount }}</dd></div>
+      </dl>
+
+      <form class="user-role-form" [formGroup]="roleForm" (ngSubmit)="changeRole()">
+        <label>
+          <span>Role</span>
+          <select formControlName="role">
+            <option value="Customer">Customer</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </label>
+        <button class="admin-button-secondary" type="submit" [disabled]="actionInProgress() || roleForm.controls.role.value === account.role">
+          Update role
+        </button>
+      </form>
+
+      <div class="user-actions">
+        @if (account.isBlocked) {
+          <button class="admin-button" type="button" [disabled]="actionInProgress()" (click)="unblockUser()">Unblock user</button>
+        } @else {
+          <button class="admin-button" type="button" [disabled]="actionInProgress()" (click)="blockUser()">Block user</button>
+        }
+        @if (!account.emailConfirmed) {
+          <button class="admin-button-secondary" type="button" [disabled]="actionInProgress()" (click)="confirmEmail()">Confirm email</button>
+        }
+        <button class="admin-button-danger" type="button" [disabled]="actionInProgress()" (click)="deleteUser()">Permanently delete user</button>
+      </div>
+
+      @if (errorMessage(); as message) {
+        <p class="admin-error" role="alert">{{ message }}</p>
+      }
+      @if (successMessage(); as message) {
+        <p class="admin-success" role="status">{{ message }}</p>
+      }
+    </section>
+  }
+</section>

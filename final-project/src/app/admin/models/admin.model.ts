@@ -1,3 +1,5 @@
+import type { UserRole } from '../../auth/models/auth.model';
+
 export type AdminDashboardProduct = {
   id: string;
   name: string;
@@ -88,4 +90,42 @@ export type AdminReviewQuery = {
   productId?: string;
   userId?: string;
   rating?: number;
+};
+
+export type AdminUser = {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  phoneNumber: string | null;
+  avatarUrl: string | null;
+  role: UserRole;
+  emailConfirmed: boolean;
+  isBlocked: boolean;
+  createdAt: string;
+  lastLoginAt: string | null;
+  reviewCount: number;
+  favoriteCount: number;
+  cartItemCount: number;
+};
+
+export type AdminCreateUserRequest = {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+};
+
+export type AdminUserSort = 'Newest' | 'Oldest' | 'EmailAsc' | 'NameAsc' | 'LastLogin';
+
+export type AdminUsersQuery = {
+  search?: string;
+  role?: UserRole;
+  isBlocked?: boolean;
+  emailConfirmed?: boolean;
+  sort?: AdminUserSort;
+  page?: number;
+  pageSize?: number;
 };
