@@ -31,6 +31,27 @@ export const routes: Routes = [
             (component) => component.AdminCategoriesComponent,
           ),
       },
+      {
+        path: 'products/new',
+        loadComponent: () =>
+          import('./admin/components/products/admin-product-form.component').then(
+            (component) => component.AdminProductFormComponent,
+          ),
+      },
+      {
+        path: 'products/:id',
+        loadComponent: () =>
+          import('./admin/components/products/admin-product-form.component').then(
+            (component) => component.AdminProductFormComponent,
+          ),
+      },
+      {
+        path: 'products',
+        loadComponent: () =>
+          import('./admin/components/products/admin-products.component').then(
+            (component) => component.AdminProductsComponent,
+          ),
+      },
     ],
   },
   ...productsRoutes,

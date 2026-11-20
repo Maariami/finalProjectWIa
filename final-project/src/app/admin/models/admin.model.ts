@@ -46,3 +46,23 @@ export type AdminCategoryRequest = {
   name: string;
   description?: string | null;
 };
+
+export type AdminProductRequest = {
+  name: string;
+  description: string;
+  sku: string;
+  brand: string;
+  price: number;
+  oldPrice: number | null;
+  stock: number;
+  categoryId: string;
+  isActive: boolean;
+};
+
+export type AdminProductsQuery = {
+  page?: number;
+  pageSize?: number;
+  isActive?: boolean;
+  search?: string;
+  categoryId?: string;
+};
