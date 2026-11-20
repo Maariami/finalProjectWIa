@@ -102,7 +102,50 @@
             @if (ownReview.comment) {
               <p>{{ ownReview.comment }}</p>
             }
+            @if (!editingOwnReview()) {
+              <button type="button" class="product-reviews__edit-button" (click)="startEditingOwnReview()">
+                Edit review
+              </button>
+            }
+            @if (editSuccess()) {
+              <p class="product-reviews__success" role="status">Your review was updated.</p>
+            }
           </article>
+          @if (editingOwnReview()) {
+            <form class="product-reviews__form" [formGroup]="editReviewForm" (ngSubmit)="submitOwnReviewEdit()" novalidate>
+              <h3>Edit your review</h3>
+              <fieldset>
+                <legend>Rating</legend>
+                @for (star of [1, 2, 3, 4, 5]; track star) {
+                  <label>
+                    <input type="radio" formControlName="rating" [value]="star" />
+                    {{ star }}
+                  </label>
+                }
+              </fieldset>
+              @if (editReviewForm.controls.rating.touched && editReviewForm.controls.rating.invalid) {
+                <p class="product-reviews__validation">Choose a rating from 1 to 5.</p>
+              }
+              <label class="product-reviews__field">
+                <span>Comment</span>
+                <textarea formControlName="comment" rows="4" maxlength="1000"></textarea>
+              </label>
+              @if (editReviewForm.controls.comment.touched && editReviewForm.controls.comment.hasError('maxlength')) {
+                <p class="product-reviews__validation">The comment cannot exceed 1000 characters.</p>
+              }
+              @if (editError(); as message) {
+                <p class="product-reviews__validation" role="alert">{{ message }}</p>
+              }
+              <div class="product-reviews__actions">
+                <button type="submit" [disabled]="editSubmitting()">
+                  {{ editSubmitting() ? 'Saving...' : 'Save changes' }}
+                </button>
+                <button type="button" class="product-reviews__secondary" (click)="cancelEditingOwnReview()">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          }
         }
       }
 

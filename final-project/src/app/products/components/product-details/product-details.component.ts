@@ -38,6 +38,15 @@ export class ProductDetailsComponent implements OnInit {
   protected readonly ownReview = signal<Review | null>(null);
   protected readonly ownReviewLoading = signal(false);
   protected readonly ownReviewError = signal<string | null>(null);
+  protected readonly editingOwnReview = signal(false);
+  protected readonly editSubmitting = signal(false);
+  protected readonly editError = signal<string | null>(null);
+  protected readonly editSuccess = signal(false);
+
+  protected readonly editReviewForm = this.formBuilder.nonNullable.group({
+    rating: [0, [Validators.required, Validators.min(1), Validators.max(5)]],
+    comment: ['', [Validators.maxLength(1000)]],
+  });
 
   private readonly authStateEffect = effect(() => {
     this.authenticationService.currentUser();
@@ -48,6 +57,10 @@ export class ProductDetailsComponent implements OnInit {
       this.ownReview.set(null);
       this.ownReviewLoading.set(false);
       this.ownReviewError.set(null);
+      this.editingOwnReview.set(false);
+      this.editSubmitting.set(false);
+      this.editError.set(null);
+      this.editSuccess.set(false);
       return;
     }
 
@@ -233,6 +246,71 @@ export class ProductDetailsComponent implements OnInit {
         finalize(() => {
           if (this.product()?.id === product.id) {
             this.reviewSubmitting.set(false);
+          }
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  protected startEditingOwnReview(): void {
+    const review = this.ownReview();
+    if (!review) return;
+
+    this.editReviewForm.reset({
+      rating: review.rating,
+      comment: review.comment ?? '',
+    });
+    this.editError.set(null);
+    this.editSuccess.set(false);
+    this.editingOwnReview.set(true);
+  }
+
+  protected cancelEditingOwnReview(): void {
+    this.editingOwnReview.set(false);
+    this.editError.set(null);
+  }
+
+  protected submitOwnReviewEdit(): void {
+    const product = this.product();
+    const review = this.ownReview();
+    if (!product || !review) return;
+
+    if (this.editReviewForm.invalid) {
+      this.editReviewForm.markAllAsTouched();
+      this.editError.set('Choose a rating from 1 to 5 and keep the comment within 1000 characters.');
+      return;
+    }
+
+    const value = this.editReviewForm.getRawValue();
+    const comment = value.comment.trim();
+    this.editSubmitting.set(true);
+    this.editError.set(null);
+    this.editSuccess.set(false);
+
+    this.reviewsService
+      .updateReview(product.id, review.id, {
+        rating: value.rating,
+        comment: comment.length > 0 ? comment : null,
+      })
+      .pipe(
+        tap(() => {
+          if (this.product()?.id === product.id) {
+            this.editSuccess.set(true);
+            this.editingOwnReview.set(false);
+            this.loadReviews(product);
+            this.loadOwnReview(product.id);
+          }
+        }),
+        catchError((error: unknown) => {
+          if (this.product()?.id === product.id) {
+            this.editError.set(this.getReviewApiError(error));
+          }
+          return EMPTY;
+        }),
+        finalize(() => {
+          if (this.product()?.id === product.id) {
+            this.editSubmitting.set(false);
           }
         }),
         takeUntilDestroyed(this.destroyRef),
