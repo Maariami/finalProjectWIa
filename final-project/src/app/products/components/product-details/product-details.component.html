@@ -91,6 +91,22 @@
       </div>
 
       @if (isAuthenticated()) {
+        @if (ownReviewLoading()) {
+          <p class="product-reviews__message" role="status">Loading your review...</p>
+        } @else if (ownReviewError(); as message) {
+          <p class="product-reviews__validation" role="alert">{{ message }}</p>
+        } @else if (ownReview(); as ownReview) {
+          <article class="product-reviews__own">
+            <h3>Your review</h3>
+            <strong>{{ ownReview.rating }} / 5</strong>
+            @if (ownReview.comment) {
+              <p>{{ ownReview.comment }}</p>
+            }
+          </article>
+        }
+      }
+
+      @if (isAuthenticated() && !ownReview()) {
         <form class="product-reviews__form" [formGroup]="reviewForm" (ngSubmit)="submitReview()" novalidate>
           <h3>Write a review</h3>
           <fieldset>

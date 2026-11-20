@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
@@ -18,10 +19,13 @@ const productsService = {
 const reviewsService = {
   getProductReviews: vi.fn<ReviewsService['getProductReviews']>(),
   createReview: vi.fn<ReviewsService['createReview']>(),
+  getMyReview: vi.fn<ReviewsService['getMyReview']>(),
 };
 
 const authenticationService = {
   getValidAccessToken: vi.fn<AuthenticationService['getValidAccessToken']>(),
+  currentUser: signal(null),
+  accessToken: signal(null),
 };
 
 const createProduct = (name: string): ProductDetails => ({
@@ -52,8 +56,11 @@ describe('ProductDetailsComponent', () => {
     productsService.getProductByIdOrSlug.mockReset();
     reviewsService.getProductReviews.mockReset();
     reviewsService.createReview.mockReset();
+    reviewsService.getMyReview.mockReset();
     authenticationService.getValidAccessToken.mockReset();
     authenticationService.getValidAccessToken.mockReturnValue(null);
+    authenticationService.currentUser.set(null);
+    authenticationService.accessToken.set(null);
     reviewsService.getProductReviews.mockReturnValue(
       of({
         reviews: {

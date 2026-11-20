@@ -286,6 +286,24 @@
   margin-top: 18px;
 }
 
+.product-reviews__own {
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid var(--color-brand);
+  border-radius: 12px;
+  background: #fbf9fe;
+}
+
+.product-reviews__own h3 {
+  margin: 0 0 8px;
+}
+
+.product-reviews__own p {
+  margin: 8px 0 0;
+  color: var(--color-muted);
+  white-space: pre-line;
+}
+
 .product-reviews__eyebrow {
   margin: 0;
   color: var(--color-brand);

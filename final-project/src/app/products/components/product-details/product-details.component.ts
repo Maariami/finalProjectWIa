@@ -1,6 +1,6 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -8,7 +8,7 @@ import { EMPTY, catchError, distinctUntilChanged, finalize, map, switchMap, tap 
 import { ProductsService } from '../../services/products.service';
 import { ReviewsService } from '../../services/reviews.service';
 import { ProductDetails } from '../../models/product.model';
-import { ProductReviews } from '../../models/review.model';
+import { ProductReviews, Review } from '../../models/review.model';
 import { AuthenticationService } from '../../../auth/services/authentication.service';
 
 @Component({
@@ -35,6 +35,26 @@ export class ProductDetailsComponent implements OnInit {
   protected readonly reviewSubmitting = signal(false);
   protected readonly reviewSubmitError = signal<string | null>(null);
   protected readonly reviewSubmitSuccess = signal(false);
+  protected readonly ownReview = signal<Review | null>(null);
+  protected readonly ownReviewLoading = signal(false);
+  protected readonly ownReviewError = signal<string | null>(null);
+
+  private readonly authStateEffect = effect(() => {
+    this.authenticationService.currentUser();
+    this.authenticationService.accessToken();
+    const product = this.product();
+
+    if (!this.isAuthenticated()) {
+      this.ownReview.set(null);
+      this.ownReviewLoading.set(false);
+      this.ownReviewError.set(null);
+      return;
+    }
+
+    if (product) {
+      this.loadOwnReview(product.id);
+    }
+  });
 
   protected readonly reviewForm = this.formBuilder.nonNullable.group({
     rating: [0, [Validators.required, Validators.min(1), Validators.max(5)]],
@@ -57,6 +77,9 @@ export class ProductDetailsComponent implements OnInit {
           this.reviewSubmitError.set(null);
           this.reviewSubmitSuccess.set(false);
           this.reviewForm.reset({ rating: 0, comment: '' });
+          this.ownReview.set(null);
+          this.ownReviewLoading.set(false);
+          this.ownReviewError.set(null);
         }),
         switchMap((idOrSlug) => {
           if (!idOrSlug) {
@@ -70,6 +93,7 @@ export class ProductDetailsComponent implements OnInit {
               this.product.set(product);
               this.loading.set(false);
               this.loadReviews(product);
+              this.loadOwnReview(product.id);
             }),
             catchError((error: unknown) => {
               this.loading.set(false);
@@ -105,6 +129,50 @@ export class ProductDetailsComponent implements OnInit {
           if (this.product()?.id === product.id) {
             this.reviewsLoading.set(false);
             this.reviewsError.set(this.getErrorMessage(error, 'reviews'));
+          }
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  private loadOwnReview(productId: string): void {
+    if (!this.isAuthenticated()) {
+      this.ownReview.set(null);
+      this.ownReviewLoading.set(false);
+      this.ownReviewError.set(null);
+      return;
+    }
+
+    this.ownReview.set(null);
+    this.ownReviewLoading.set(true);
+    this.ownReviewError.set(null);
+
+    this.reviewsService
+      .getMyReview(productId)
+      .pipe(
+        tap((review) => {
+          if (this.product()?.id === productId && this.isAuthenticated()) {
+            this.ownReview.set(review.productId === productId ? review : null);
+            this.ownReviewLoading.set(false);
+          }
+        }),
+        catchError((error: unknown) => {
+          if (this.product()?.id !== productId) {
+            return EMPTY;
+          }
+
+          this.ownReviewLoading.set(false);
+          if (error instanceof HttpErrorResponse && error.status === 404) {
+            this.ownReview.set(null);
+            this.ownReviewError.set(null);
+          } else if (error instanceof HttpErrorResponse && error.status === 401) {
+            this.ownReview.set(null);
+            this.ownReviewError.set('Sign in again to view your review.');
+          } else {
+            this.ownReview.set(null);
+            this.ownReviewError.set(this.getReviewApiError(error));
           }
           return EMPTY;
         }),
@@ -153,6 +221,7 @@ export class ProductDetailsComponent implements OnInit {
             this.reviewSubmitSuccess.set(true);
             this.reviewForm.reset({ rating: 0, comment: '' });
             this.loadReviews(product);
+            this.loadOwnReview(product.id);
           }
         }),
         catchError((error: unknown) => {
