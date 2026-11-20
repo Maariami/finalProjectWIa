@@ -66,3 +66,18 @@ export type AdminProductsQuery = {
   search?: string;
   categoryId?: string;
 };
+
+export type AdminBanner = {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  imageUrl: string;
+  linkUrl: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  startsAt: string | null;
+  endsAt: string | null;
+  isCurrentlyVisible: boolean;
+  createdAt: string;
+  updatedAt: string | null;
+};

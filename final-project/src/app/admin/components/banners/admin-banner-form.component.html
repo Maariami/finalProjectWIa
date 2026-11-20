@@ -1,0 +1,79 @@
+<section class="admin-page">
+  <header class="admin-page__header">
+    <div>
+      <p class="admin-page__eyebrow">Storefront</p>
+      <h1>{{ createMode() ? 'Create banner' : 'Edit banner' }}</h1>
+    </div>
+    <a routerLink="/admin/banners">Back to banners</a>
+  </header>
+
+  @if (loading()) {
+    <p class="admin-panel" role="status">Loading banner...</p>
+  } @else if (errorMessage() && !banner() && !createMode()) {
+    <p class="admin-panel admin-error" role="alert">{{ errorMessage() }}</p>
+  } @else {
+    <form class="admin-panel banner-form" [formGroup]="bannerForm" (ngSubmit)="saveBanner()" novalidate>
+      @if (banner(); as item) {
+        <img class="banner-preview" [src]="item.imageUrl" [alt]="item.title" />
+        <p>Current image. Choose a replacement only if you want to change it.</p>
+      }
+
+      <label>
+        <span>Title</span>
+        <input formControlName="title" maxlength="100" required />
+      </label>
+      @if (bannerForm.controls.title.touched && bannerForm.controls.title.invalid) {
+        <p class="admin-error">Title must be 2–100 characters.</p>
+      }
+
+      <label>
+        <span>Subtitle (optional)</span>
+        <input formControlName="subtitle" maxlength="200" />
+      </label>
+
+      <label>
+        <span>Link URL</span>
+        <input formControlName="linkUrl" placeholder="/products" />
+      </label>
+
+      <div class="banner-form__grid">
+        <label>
+          <span>Sort order</span>
+          <input type="number" formControlName="sortOrder" min="0" max="10000" step="1" />
+        </label>
+        <label>
+          <span>Starts at</span>
+          <input type="datetime-local" formControlName="startsAt" />
+        </label>
+        <label>
+          <span>Ends at</span>
+          <input type="datetime-local" formControlName="endsAt" />
+        </label>
+      </div>
+
+      <label class="banner-form__checkbox">
+        <input type="checkbox" formControlName="isActive" />
+        <span>Active</span>
+      </label>
+
+      <label>
+        <span>{{ createMode() ? 'Banner image (required)' : 'Replace image (optional)' }}</span>
+        <input type="file" accept="image/jpeg,image/png,image/webp" (change)="selectImage($event)" />
+      </label>
+      @if (selectedImage(); as image) {
+        <p>{{ image.name }} · {{ image.size | number }} bytes</p>
+      }
+
+      @if (errorMessage(); as message) {
+        <p class="admin-error" role="alert">{{ message }}</p>
+      }
+      @if (successMessage(); as message) {
+        <p class="admin-success" role="status">{{ message }}</p>
+      }
+
+      <button class="admin-button" type="submit" [disabled]="saving()">
+        {{ saving() ? 'Saving...' : 'Save banner' }}
+      </button>
+    </form>
+  }
+</section>

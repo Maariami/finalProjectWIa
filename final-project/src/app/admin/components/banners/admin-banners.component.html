@@ -1,0 +1,57 @@
+<section class="admin-page">
+  <header class="admin-page__header">
+    <div>
+      <p class="admin-page__eyebrow">Storefront</p>
+      <h1>Banners</h1>
+      <p>Manage active, inactive, and scheduled promotional banners.</p>
+    </div>
+    <a class="admin-button" routerLink="/admin/banners/new">Create banner</a>
+  </header>
+
+  <label class="banner-filter">
+    <span>Filter status</span>
+    <select #filter [value]="activeFilter()" (change)="filterBanners(filter.value)">
+      <option value="">All banners</option>
+      <option value="true">Active</option>
+      <option value="false">Inactive</option>
+    </select>
+  </label>
+
+  <section class="admin-panel">
+    @if (loading()) {
+      <p class="admin-state" role="status">Loading banners...</p>
+    } @else if (errorMessage(); as message) {
+      <p class="admin-error" role="alert">{{ message }}</p>
+    } @else if (banners().length === 0) {
+      <p class="admin-state">No banners found.</p>
+    } @else {
+      <div class="banner-grid">
+        @for (banner of banners(); track banner.id) {
+          <article class="banner-card">
+            <img [src]="banner.imageUrl" [alt]="banner.title" />
+            <div class="banner-card__body">
+              <div class="banner-card__heading">
+                <h2>{{ banner.title }}</h2>
+                <span [class.banner-status--inactive]="!banner.isActive">{{ bannerStatus(banner) }}</span>
+              </div>
+              @if (banner.subtitle) {
+                <p>{{ banner.subtitle }}</p>
+              }
+              <dl>
+                <div><dt>Order</dt><dd>{{ banner.sortOrder }}</dd></div>
+                <div><dt>Starts</dt><dd>{{ banner.startsAt ? (banner.startsAt | date: 'medium') : 'Any time' }}</dd></div>
+                <div><dt>Ends</dt><dd>{{ banner.endsAt ? (banner.endsAt | date: 'medium') : 'No end date' }}</dd></div>
+              </dl>
+              <div class="banner-actions">
+                <a class="admin-button-secondary" [routerLink]="['/admin/banners', banner.id]">Edit</a>
+                <button class="admin-button-danger" type="button" [disabled]="deletingId() === banner.id" (click)="deleteBanner(banner)">
+                  {{ deletingId() === banner.id ? 'Deleting...' : 'Delete' }}
+                </button>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</section>

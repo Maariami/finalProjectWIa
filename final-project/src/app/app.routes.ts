@@ -52,6 +52,27 @@ export const routes: Routes = [
             (component) => component.AdminProductsComponent,
           ),
       },
+      {
+        path: 'banners/new',
+        loadComponent: () =>
+          import('./admin/components/banners/admin-banner-form.component').then(
+            (component) => component.AdminBannerFormComponent,
+          ),
+      },
+      {
+        path: 'banners/:id',
+        loadComponent: () =>
+          import('./admin/components/banners/admin-banner-form.component').then(
+            (component) => component.AdminBannerFormComponent,
+          ),
+      },
+      {
+        path: 'banners',
+        loadComponent: () =>
+          import('./admin/components/banners/admin-banners.component').then(
+            (component) => component.AdminBannersComponent,
+          ),
+      },
     ],
   },
   ...productsRoutes,
