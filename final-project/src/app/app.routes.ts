@@ -16,6 +16,15 @@ export const routes: Routes = [
     path: 'admin',
     component: AdminComponent,
     canActivate: [adminGuard],
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./admin/components/dashboard/admin-dashboard.component').then(
+            (component) => component.AdminDashboardComponent,
+          ),
+      },
+    ],
   },
   ...productsRoutes,
 ];
