@@ -19,6 +19,7 @@ describe('AuthenticationService', () => {
   const baseUrl = `${API_BASE_URL}/api/auth`;
 
   beforeEach(() => {
+    sessionStorage.clear();
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
@@ -28,6 +29,7 @@ describe('AuthenticationService', () => {
 
   afterEach(() => {
     httpTestingController.verify();
+    sessionStorage.clear();
   });
 
   it('sends registration details and returns registration response', () => {
@@ -172,6 +174,41 @@ describe('AuthenticationService', () => {
 
     expect(service.getValidAccessToken()).toBeNull();
     expect(service.getValidRefreshToken()).toBe('test-refresh-token');
+  });
+
+  it('restores a valid session after the service is recreated', () => {
+    service.login({ email: 'person@example.com', password: 'ExamplePass1' }).subscribe();
+    httpTestingController.expectOne(`${baseUrl}/login`).flush({
+      accessToken: 'persisted-access-token',
+      accessTokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      refreshToken: 'persisted-refresh-token',
+      refreshTokenExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      user: {
+        id: 'user-id',
+        email: 'person@example.com',
+        firstName: 'First',
+        lastName: 'Last',
+        fullName: 'First Last',
+        phoneNumber: null,
+        avatarUrl: null,
+        role: 'Customer',
+        emailConfirmed: true,
+        createdAt: new Date().toISOString(),
+      },
+    } satisfies AuthResponse);
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    const restoredService = TestBed.inject(AuthenticationService);
+
+    expect(restoredService.currentUser()?.email).toBe('person@example.com');
+    expect(restoredService.getValidAccessToken()).toBe('persisted-access-token');
+    expect(restoredService.getValidRefreshToken()).toBe('persisted-refresh-token');
+
+    restoredService.clearSession();
+    expect(sessionStorage.getItem('shopsphere.auth.session')).toBeNull();
   });
 
   it('sends the refresh token for logout and accepts an empty success response', () => {

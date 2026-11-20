@@ -1,0 +1,121 @@
+<section class="admin-page">
+  <header class="admin-page__header">
+    <div>
+      <p class="admin-page__eyebrow">Access management</p>
+      <h1>Users</h1>
+      <p>Search accounts and manage roles, confirmation, and access status.</p>
+    </div>
+    <button class="admin-button" type="button" (click)="showCreateForm.set(!showCreateForm())">
+      {{ showCreateForm() ? 'Close form' : 'Create user' }}
+    </button>
+  </header>
+
+  @if (showCreateForm()) {
+    <form class="admin-panel user-create" [formGroup]="createForm" (ngSubmit)="createUser()" novalidate>
+      <h2>Create a confirmed user</h2>
+      <div class="user-create__grid">
+        <label><span>Email</span><input type="email" formControlName="email" required /></label>
+        <label><span>Initial password</span><input type="password" formControlName="password" required /></label>
+        <label><span>First name</span><input formControlName="firstName" required /></label>
+        <label><span>Last name</span><input formControlName="lastName" required /></label>
+        <label>
+          <span>Role</span>
+          <select formControlName="role">
+            <option value="Customer">Customer</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </label>
+      </div>
+      @if (createError(); as message) {
+        <p class="admin-error" role="alert">{{ message }}</p>
+      }
+      <button class="admin-button" type="submit" [disabled]="creating()">
+        {{ creating() ? 'Creating...' : 'Create user' }}
+      </button>
+    </form>
+  }
+
+  <form class="admin-panel user-filters" [formGroup]="filterForm" (ngSubmit)="applyFilters()">
+    <label><span>Search</span><input formControlName="search" placeholder="Name or email" /></label>
+    <label>
+      <span>Role</span>
+      <select formControlName="role">
+        <option value="">All roles</option>
+        <option value="Customer">Customer</option>
+        <option value="Admin">Admin</option>
+      </select>
+    </label>
+    <label>
+      <span>Blocked</span>
+      <select formControlName="isBlocked">
+        <option [ngValue]="null">Any</option>
+        <option [ngValue]="true">Blocked</option>
+        <option [ngValue]="false">Not blocked</option>
+      </select>
+    </label>
+    <label>
+      <span>Email</span>
+      <select formControlName="emailConfirmed">
+        <option [ngValue]="null">Any status</option>
+        <option [ngValue]="true">Confirmed</option>
+        <option [ngValue]="false">Unconfirmed</option>
+      </select>
+    </label>
+    <label>
+      <span>Sort by</span>
+      <select formControlName="sort">
+        <option value="Newest">Newest</option>
+        <option value="Oldest">Oldest</option>
+        <option value="EmailAsc">Email</option>
+        <option value="NameAsc">Name</option>
+        <option value="LastLogin">Last login</option>
+      </select>
+    </label>
+    <div class="user-filters__actions">
+      <button class="admin-button" type="submit">Apply filters</button>
+      <button class="admin-button-secondary" type="button" (click)="clearFilters()">Clear</button>
+    </div>
+  </form>
+
+  <section class="admin-panel">
+    @if (loading()) {
+      <p class="admin-state" role="status">Loading users...</p>
+    } @else if (errorMessage(); as message) {
+      <p class="admin-error" role="alert">{{ message }}</p>
+    } @else if (result(); as page) {
+      @if (page.items.length === 0) {
+        <p class="admin-state">No users found.</p>
+      } @else {
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>User</th><th>Role</th><th>Account status</th><th>Reviews</th><th>Favorites</th><th>Cart</th><th>Details</th></tr>
+            </thead>
+            <tbody>
+              @for (user of page.items; track user.id) {
+                <tr>
+                  <td>{{ user.fullName }}<small>{{ user.email }}</small></td>
+                  <td>{{ user.role }}</td>
+                  <td>
+                    <span>{{ user.isBlocked ? 'Blocked' : 'Active' }}</span>
+                    <small>{{ user.emailConfirmed ? 'Email confirmed' : 'Email unconfirmed' }}</small>
+                  </td>
+                  <td>{{ user.reviewCount }}</td>
+                  <td>{{ user.favoriteCount }}</td>
+                  <td>{{ user.cartItemCount }}</td>
+                  <td><a [routerLink]="['/admin/users', user.id]">Manage</a></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <nav class="admin-pagination" aria-label="User pages">
+        <button class="admin-button-secondary" type="button" [disabled]="!page.hasPreviousPage || loading()" (click)="changePage(page.page - 1)">Previous</button>
+        <span>Page {{ page.page }} of {{ page.totalPages }} · {{ page.totalCount }} users</span>
+        <button class="admin-button-secondary" type="button" [disabled]="!page.hasNextPage || loading()" (click)="changePage(page.page + 1)">Next</button>
+      </nav>
+    }
+  </section>
+</section>

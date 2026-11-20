@@ -1,0 +1,132 @@
+<section class="admin-page">
+  <header class="admin-page__header">
+    <div>
+      <p class="admin-page__eyebrow">Catalog</p>
+      <h1>{{ createMode() ? 'Create product' : 'Edit product' }}</h1>
+    </div>
+    <a class="admin-link" routerLink="/admin/products">Back to products</a>
+  </header>
+
+  @if (loading()) {
+    <p class="admin-panel" role="status">Loading product...</p>
+  } @else if (errorMessage(); as message) {
+    <p class="admin-panel admin-error" role="alert">{{ message }}</p>
+  } @else {
+    <form class="admin-panel product-form" [formGroup]="productForm" (ngSubmit)="saveProduct()" novalidate>
+      <label>
+        <span>Name</span>
+        <input formControlName="name" maxlength="150" required />
+      </label>
+      @if (productForm.controls.name.touched && productForm.controls.name.invalid) {
+        <p class="admin-error">Name is required and must be 2–150 characters.</p>
+      }
+
+      <label>
+        <span>Description</span>
+        <textarea formControlName="description" rows="5" maxlength="4000"></textarea>
+      </label>
+      @if (productForm.controls.description.touched && productForm.controls.description.hasError('maxlength')) {
+        <p class="admin-error">Description cannot exceed 4000 characters.</p>
+      }
+
+      <div class="product-form__grid">
+        <label>
+          <span>SKU</span>
+          <input formControlName="sku" maxlength="50" required />
+        </label>
+        <label>
+          <span>Brand</span>
+          <input formControlName="brand" maxlength="60" required />
+        </label>
+        <label>
+          <span>Price</span>
+          <input type="number" formControlName="price" min="0.01" step="0.01" required />
+        </label>
+        <label>
+          <span>Old price (optional)</span>
+          <input type="number" formControlName="oldPrice" min="0" step="0.01" />
+        </label>
+        <label>
+          <span>Stock</span>
+          <input type="number" formControlName="stock" min="0" step="1" required />
+        </label>
+        <label>
+          <span>Category</span>
+          <select formControlName="categoryId" required>
+            <option value="">Select category</option>
+            @for (category of categories(); track category.id) {
+              <option [value]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <label class="product-form__checkbox">
+        <input type="checkbox" formControlName="isActive" />
+        <span>Active in public catalog</span>
+      </label>
+
+      @if (productForm.controls.sku.touched && productForm.controls.sku.invalid) {
+        <p class="admin-error">SKU must be 3–50 characters using letters, numbers, and hyphens.</p>
+      }
+      @if (productForm.controls.price.touched && productForm.controls.price.invalid) {
+        <p class="admin-error">Price must be greater than zero.</p>
+      }
+      @if (productForm.controls.stock.touched && productForm.controls.stock.invalid) {
+        <p class="admin-error">Stock cannot be negative.</p>
+      }
+      @if (productForm.controls.categoryId.touched && productForm.controls.categoryId.invalid) {
+        <p class="admin-error">Select a category.</p>
+      }
+
+      @if (errorMessage(); as message) {
+        <p class="admin-error" role="alert">{{ message }}</p>
+      }
+      @if (successMessage(); as message) {
+        <p class="admin-success" role="status">{{ message }}</p>
+      }
+      <button class="admin-button" type="submit" [disabled]="saving()">
+        {{ saving() ? 'Saving...' : 'Save product' }}
+      </button>
+    </form>
+
+    @if (product(); as item) {
+      <section class="admin-panel product-images">
+        <div>
+          <h2>Product images</h2>
+          <p>Upload one or more images. The API validates supported file types and limits.</p>
+        </div>
+        <label>
+          <span>Select images</span>
+          <input type="file" accept="image/*" multiple (change)="selectImages($event)" />
+        </label>
+        @if (selectedFiles().length > 0) {
+          <p>{{ selectedFiles().length }} image(s) selected</p>
+          <button class="admin-button" type="button" [disabled]="uploading()" (click)="uploadImages()">
+            {{ uploading() ? 'Uploading...' : 'Upload images' }}
+          </button>
+        }
+        @if (imageError(); as message) {
+          <p class="admin-error" role="alert">{{ message }}</p>
+        }
+        @if (item.images.length === 0) {
+          <p class="admin-state">No product images yet.</p>
+        } @else {
+          <div class="product-images__grid">
+            @for (image of item.images; track image.id) {
+              <article>
+                <img [src]="image.url" [alt]="item.name" />
+                @if (image.isPrimary) {
+                  <strong>Primary image</strong>
+                } @else {
+                  <button class="admin-link-button" type="button" (click)="makePrimary(image)">Set primary</button>
+                }
+                <button class="admin-danger-button" type="button" (click)="deleteImage(image)">Delete image</button>
+              </article>
+            }
+          </div>
+        }
+      </section>
+    }
+  }
+</section>

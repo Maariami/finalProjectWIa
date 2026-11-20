@@ -81,5 +81,187 @@
         </dl>
       </div>
     </section>
+
+    <section class="product-reviews" aria-labelledby="product-reviews-heading">
+      <div class="product-reviews__header">
+        <div>
+          <p class="product-reviews__eyebrow">Customer feedback</p>
+          <h2 id="product-reviews-heading">Product reviews</h2>
+        </div>
+      </div>
+
+      @if (isAuthenticated()) {
+        @if (ownReviewLoading()) {
+          <p class="product-reviews__message" role="status">Loading your review...</p>
+        } @else if (ownReviewError(); as message) {
+          <p class="product-reviews__validation" role="alert">{{ message }}</p>
+        } @else if (ownReview(); as ownReview) {
+          <article class="product-reviews__own">
+            <h3>Your review</h3>
+            <strong>{{ ownReview.rating }} / 5</strong>
+            @if (ownReview.comment) {
+              <p>{{ ownReview.comment }}</p>
+            }
+            @if (!editingOwnReview()) {
+              <div class="product-reviews__actions">
+                <button type="button" class="product-reviews__edit-button" (click)="startEditingOwnReview()">
+                  Edit review
+                </button>
+                <button
+                  type="button"
+                  class="product-reviews__delete-button"
+                  [disabled]="deleteSubmitting()"
+                  (click)="deleteOwnReview()"
+                >
+                  {{ deleteSubmitting() ? 'Deleting...' : 'Delete review' }}
+                </button>
+              </div>
+            }
+            @if (editSuccess()) {
+              <p class="product-reviews__success" role="status">Your review was updated.</p>
+            }
+            @if (deleteSuccess()) {
+              <p class="product-reviews__success" role="status">Your review was deleted.</p>
+            }
+            @if (deleteError(); as message) {
+              <p class="product-reviews__validation" role="alert">{{ message }}</p>
+            }
+          </article>
+          @if (editingOwnReview()) {
+            <form class="product-reviews__form" [formGroup]="editReviewForm" (ngSubmit)="submitOwnReviewEdit()" novalidate>
+              <h3>Edit your review</h3>
+              <fieldset>
+                <legend>Rating</legend>
+                @for (star of [1, 2, 3, 4, 5]; track star) {
+                  <label>
+                    <input type="radio" formControlName="rating" [value]="star" />
+                    {{ star }}
+                  </label>
+                }
+              </fieldset>
+              @if (editReviewForm.controls.rating.touched && editReviewForm.controls.rating.invalid) {
+                <p class="product-reviews__validation">Choose a rating from 1 to 5.</p>
+              }
+              <label class="product-reviews__field">
+                <span>Comment</span>
+                <textarea formControlName="comment" rows="4" maxlength="1000"></textarea>
+              </label>
+              @if (editReviewForm.controls.comment.touched && editReviewForm.controls.comment.hasError('maxlength')) {
+                <p class="product-reviews__validation">The comment cannot exceed 1000 characters.</p>
+              }
+              @if (editError(); as message) {
+                <p class="product-reviews__validation" role="alert">{{ message }}</p>
+              }
+              <div class="product-reviews__actions">
+                <button type="submit" [disabled]="editSubmitting()">
+                  {{ editSubmitting() ? 'Saving...' : 'Save changes' }}
+                </button>
+                <button type="button" class="product-reviews__secondary" (click)="cancelEditingOwnReview()">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          }
+        }
+      }
+
+      @if (isAuthenticated()) {
+        @if (!ownReview()) {
+          <form class="product-reviews__form" [formGroup]="reviewForm" (ngSubmit)="submitReview()" novalidate>
+            <h3>Write a review</h3>
+            <fieldset>
+              <legend>Rating</legend>
+              @for (star of [1, 2, 3, 4, 5]; track star) {
+                <label>
+                  <input type="radio" formControlName="rating" [value]="star" />
+                  {{ star }}
+                </label>
+              }
+            </fieldset>
+            @if (reviewForm.controls.rating.touched && reviewForm.controls.rating.invalid) {
+              <p class="product-reviews__validation">Choose a rating from 1 to 5.</p>
+            }
+
+            <label class="product-reviews__field">
+              <span>Comment</span>
+              <textarea
+                formControlName="comment"
+                rows="4"
+                maxlength="1000"
+                placeholder="Share your experience"
+              ></textarea>
+            </label>
+            @if (reviewForm.controls.comment.touched && reviewForm.controls.comment.hasError('maxlength')) {
+              <p class="product-reviews__validation">The comment cannot exceed 1000 characters.</p>
+            }
+
+            @if (reviewSubmitError(); as message) {
+              <p class="product-reviews__validation" role="alert">{{ message }}</p>
+            }
+            @if (reviewSubmitSuccess()) {
+              <p class="product-reviews__success" role="status">Your review was submitted.</p>
+            }
+
+            <button type="submit" [disabled]="reviewSubmitting()">
+              {{ reviewSubmitting() ? 'Submitting...' : 'Submit review' }}
+            </button>
+          </form>
+        }
+      } @else {
+        <p class="product-reviews__auth">
+          <a routerLink="/login">Sign in</a> to write a review.
+        </p>
+      }
+
+      @if (reviewsLoading()) {
+        <p class="product-reviews__message" role="status">Loading reviews...</p>
+      } @else if (reviewsError(); as message) {
+        <p class="product-reviews__message product-reviews__message--error" role="alert">{{ message }}</p>
+      } @else if (productReviews(); as reviews) {
+        <div class="product-reviews__summary">
+          <div class="product-reviews__average">
+            <strong>{{ reviews.averageRating | number: '1.1-1' }}</strong>
+            <span>{{ reviews.reviewCount }} {{ reviews.reviewCount === 1 ? 'review' : 'reviews' }}</span>
+          </div>
+
+          <div class="product-reviews__distribution" aria-label="Rating distribution">
+            @for (star of [5, 4, 3, 2, 1]; track star) {
+              <div class="product-reviews__distribution-row">
+                <span>{{ star }} star{{ star === 1 ? '' : 's' }}</span>
+                <div class="product-reviews__distribution-bar" aria-hidden="true">
+                  <span
+                    [style.width.%]="reviews.reviewCount > 0 ? (distributionCount(star) / reviews.reviewCount) * 100 : 0"
+                  ></span>
+                </div>
+                <strong>{{ distributionCount(star) }}</strong>
+              </div>
+            }
+          </div>
+        </div>
+
+        @if (reviews.reviews.items.length === 0) {
+          <p class="product-reviews__message">No reviews yet. Be the first to review this product.</p>
+        } @else {
+          <div class="product-reviews__list">
+            @for (review of reviews.reviews.items; track review.id) {
+              <article class="product-reviews__item">
+                <div class="product-reviews__item-header">
+                  <div>
+                    <strong>{{ review.author.fullName }}</strong>
+                    <span>{{ review.rating }} / 5</span>
+                  </div>
+                  <time [attr.datetime]="review.createdAt">
+                    {{ review.createdAt | date: 'mediumDate' }}
+                  </time>
+                </div>
+                @if (review.comment) {
+                  <p>{{ review.comment }}</p>
+                }
+              </article>
+            }
+          </div>
+        }
+      }
+    </section>
   }
 </main>

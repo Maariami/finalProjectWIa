@@ -1,8 +1,32 @@
-<main class="auth-page">
-  <section class="auth-card">
-    <p class="auth-card__eyebrow">SHOPSPHERE / ADMIN</p>
-    <h1>Admin area</h1>
-    <p>You are signed in with administrator access.</p>
-    <p class="auth-card__footer"><a routerLink="/products">Return to the catalog</a></p>
+<main class="admin-page-shell">
+  <section class="admin-layout" aria-label="Administration">
+    <aside class="admin-sidebar">
+      <a class="admin-sidebar__brand" routerLink="/admin">ShopSphere Admin</a>
+      <p class="admin-sidebar__label">Management</p>
+      <nav aria-label="Admin navigation">
+        <a routerLink="/admin" routerLinkActive="admin-sidebar__link--active" [routerLinkActiveOptions]="{ exact: true }">
+          Dashboard
+        </a>
+        <a routerLink="/admin/categories" routerLinkActive="admin-sidebar__link--active">
+          Categories
+        </a>
+        <a routerLink="/admin/products" routerLinkActive="admin-sidebar__link--active">
+          Products
+        </a>
+        <a routerLink="/admin/banners" routerLinkActive="admin-sidebar__link--active">
+          Banners
+        </a>
+        <a routerLink="/admin/reviews" routerLinkActive="admin-sidebar__link--active">
+          Reviews
+        </a>
+        <a routerLink="/admin/users" routerLinkActive="admin-sidebar__link--active">
+          Users
+        </a>
+      </nav>
+      <a class="admin-sidebar__catalog" routerLink="/products">Return to catalog</a>
+    </aside>
+    <div class="admin-layout__content">
+      <router-outlet />
+    </div>
   </section>
 </main>

@@ -1,0 +1,75 @@
+<section class="admin-page">
+  <header class="admin-page__header">
+    <div>
+      <p class="admin-page__eyebrow">Catalog</p>
+      <h1>Products</h1>
+      <p>Manage catalog products, availability, pricing, and product images.</p>
+    </div>
+    <a class="admin-primary-link" routerLink="/admin/products/new">Create product</a>
+  </header>
+
+  <section class="admin-product-filters">
+    <label>
+      <span>Search products</span>
+      <input #searchInput [value]="search()" (keyup.enter)="searchProducts(searchInput.value)" placeholder="Name, SKU, or brand" />
+    </label>
+    <button type="button" class="admin-button" (click)="searchProducts(searchInput.value)">Search</button>
+    <label>
+      <span>Status</span>
+      <select #statusSelect [value]="activeFilter()" (change)="filterActive(statusSelect.value)">
+        <option value="">All statuses</option>
+        <option value="true">Active</option>
+        <option value="false">Inactive</option>
+      </select>
+    </label>
+  </section>
+
+  <section class="admin-panel">
+    @if (loading()) {
+      <p class="admin-state" role="status">Loading products...</p>
+    } @else if (errorMessage(); as message) {
+      <p class="admin-error" role="alert">{{ message }}</p>
+    } @else if (result(); as page) {
+      @if (page.items.length === 0) {
+        <p class="admin-state">No products found.</p>
+      } @else {
+        <div class="admin-table-wrap">
+          <table class="admin-table admin-table--products">
+            <thead>
+              <tr><th>Product</th><th>SKU</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              @for (product of page.items; track product.id) {
+                <tr>
+                  <td class="product-name">
+                    <a class="product-name__link" [routerLink]="['/admin/products', product.id]">{{ product.name }}</a>
+                    <small>{{ product.brand }}</small>
+                  </td>
+                  <td>{{ product.sku }}</td>
+                  <td>{{ product.category.name }}</td>
+                  <td>{{ product.price | number: '1.2-2' }}</td>
+                  <td>{{ product.stock }}</td>
+                  <td><span class="status" [class.status--inactive]="!product.isActive">{{ product.isActive ? 'Active' : 'Inactive' }}</span></td>
+                  <td>
+                    <div class="admin-actions">
+                      <a class="admin-secondary-link" [routerLink]="['/admin/products', product.id]">Edit</a>
+                      <button class="admin-danger-button" type="button" [disabled]="deletingId() === product.id" (click)="deleteProduct(product)">
+                        {{ deletingId() === product.id ? 'Deleting...' : 'Delete' }}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <nav class="admin-pagination" aria-label="Product pages">
+        <button class="admin-button-secondary" type="button" [disabled]="!page.hasPreviousPage || loading()" (click)="changePage(page.page - 1)">Previous</button>
+        <span>Page {{ page.page }} of {{ page.totalPages }} · {{ page.totalCount }} products</span>
+        <button class="admin-button-secondary" type="button" [disabled]="!page.hasNextPage || loading()" (click)="changePage(page.page + 1)">Next</button>
+      </nav>
+    }
+  </section>
+</section>

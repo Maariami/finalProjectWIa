@@ -1,0 +1,74 @@
+<section class="admin-page">
+  <header class="admin-page__header">
+    <div>
+      <p class="admin-page__eyebrow">Catalog</p>
+      <h1>Categories</h1>
+      <p>Maintain the categories used throughout the product catalog.</p>
+    </div>
+  </header>
+
+  <form class="admin-panel category-form" [formGroup]="categoryForm" (ngSubmit)="saveCategory()" novalidate>
+    <h2>{{ editingCategory() ? 'Edit category' : 'Create category' }}</h2>
+    <label>
+      <span>Name</span>
+      <input formControlName="name" maxlength="60" required />
+    </label>
+    @if (categoryForm.controls.name.touched && categoryForm.controls.name.invalid) {
+      <p class="admin-error">Name must be between 2 and 60 characters.</p>
+    }
+    <label>
+      <span>Description</span>
+      <textarea formControlName="description" rows="3" maxlength="500"></textarea>
+    </label>
+    @if (categoryForm.controls.description.touched && categoryForm.controls.description.hasError('maxlength')) {
+      <p class="admin-error">Description cannot exceed 500 characters.</p>
+    }
+    @if (formError(); as message) {
+      <p class="admin-error" role="alert">{{ message }}</p>
+    }
+    <div class="admin-actions">
+      <button type="submit" [disabled]="saving()">
+        {{ saving() ? 'Saving...' : editingCategory() ? 'Save changes' : 'Create category' }}
+      </button>
+      @if (editingCategory()) {
+        <button type="button" class="button-secondary" (click)="cancelEdit()">Cancel</button>
+      }
+    </div>
+  </form>
+
+  <section class="admin-panel">
+    <h2>All categories</h2>
+    @if (loading()) {
+      <p class="admin-state" role="status">Loading categories...</p>
+    } @else if (errorMessage(); as message) {
+      <p class="admin-error" role="alert">{{ message }}</p>
+    } @else if (categories().length === 0) {
+      <p class="admin-state">No categories found.</p>
+    } @else {
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr><th>Name</th><th>Description</th><th>Products</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            @for (category of categories(); track category.id) {
+              <tr>
+                <td>{{ category.name }}</td>
+                <td>{{ category.description || '—' }}</td>
+                <td>{{ category.productCount }}</td>
+                <td>
+                  <div class="admin-actions">
+                    <button type="button" class="button-secondary" (click)="editCategory(category)">Edit</button>
+                    <button type="button" class="button-danger" [disabled]="deletingId() === category.id" (click)="deleteCategory(category)">
+                      {{ deletingId() === category.id ? 'Deleting...' : 'Delete' }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</section>

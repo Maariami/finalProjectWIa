@@ -1,0 +1,84 @@
+<section class="admin-page">
+  <header class="admin-page__header">
+    <div>
+      <p class="admin-page__eyebrow">Overview</p>
+      <h1>Admin dashboard</h1>
+      <p>ShopSphere activity and operational statistics.</p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <p class="admin-state" role="status">Loading dashboard...</p>
+  } @else if (errorMessage(); as message) {
+    <p class="admin-state admin-state--error" role="alert">{{ message }}</p>
+  } @else if (dashboard(); as data) {
+    <div class="admin-stats">
+      <article><span>Total users</span><strong>{{ data.totalUsers }}</strong></article>
+      <article><span>Administrators</span><strong>{{ data.totalAdmins }}</strong></article>
+      <article><span>Blocked users</span><strong>{{ data.blockedUsers }}</strong></article>
+      <article><span>New users · 7 days</span><strong>{{ data.newUsersLast7Days }}</strong></article>
+      <article><span>New users · 30 days</span><strong>{{ data.newUsersLast30Days }}</strong></article>
+      <article><span>Products</span><strong>{{ data.totalProducts }}</strong></article>
+      <article><span>Active products</span><strong>{{ data.activeProducts }}</strong></article>
+      <article><span>Out of stock</span><strong>{{ data.outOfStockProducts }}</strong></article>
+      <article><span>Categories</span><strong>{{ data.totalCategories }}</strong></article>
+      <article><span>Active banners</span><strong>{{ data.activeBanners }}</strong></article>
+      <article><span>Reviews</span><strong>{{ data.totalReviews }}</strong></article>
+      <article><span>Total views</span><strong>{{ data.totalViews }}</strong></article>
+    </div>
+
+    <div class="admin-dashboard-grid">
+      <section class="admin-panel">
+        <h2>Most viewed products</h2>
+        @if (data.topViewedProducts.length) {
+          <ol>
+            @for (product of data.topViewedProducts; track product.id) {
+              <li><span>{{ product.name }}</span><strong>{{ product.viewCount }} views</strong></li>
+            }
+          </ol>
+        } @else {
+          <p class="admin-panel__empty">No product view statistics yet.</p>
+        }
+      </section>
+
+      <section class="admin-panel">
+        <h2>Top rated products</h2>
+        @if (data.topRatedProducts.length) {
+          <ol>
+            @for (product of data.topRatedProducts; track product.id) {
+              <li><span>{{ product.name }}</span><strong>{{ product.averageRating | number: '1.1-1' }} · {{ product.reviewCount }} reviews</strong></li>
+            }
+          </ol>
+        } @else {
+          <p class="admin-panel__empty">No rated products yet.</p>
+        }
+      </section>
+
+      <section class="admin-panel">
+        <h2>Low-stock products</h2>
+        @if (data.lowStockProducts.length) {
+          <ul>
+            @for (product of data.lowStockProducts; track product.id) {
+              <li><span>{{ product.name }}</span><strong>{{ product.stock }} left</strong></li>
+            }
+          </ul>
+        } @else {
+          <p class="admin-panel__empty">No low-stock alerts.</p>
+        }
+      </section>
+
+      <section class="admin-panel">
+        <h2>Products by category</h2>
+        @if (data.productsPerCategory.length) {
+          <ul>
+            @for (category of data.productsPerCategory; track category.id) {
+              <li><span>{{ category.name }}</span><strong>{{ category.productCount }}</strong></li>
+            }
+          </ul>
+        } @else {
+          <p class="admin-panel__empty">No category statistics yet.</p>
+        }
+      </section>
+    </div>
+  }
+</section>

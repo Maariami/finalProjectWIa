@@ -16,6 +16,85 @@ export const routes: Routes = [
     path: 'admin',
     component: AdminComponent,
     canActivate: [adminGuard],
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./admin/components/dashboard/admin-dashboard.component').then(
+            (component) => component.AdminDashboardComponent,
+          ),
+      },
+      {
+        path: 'categories',
+        loadComponent: () =>
+          import('./admin/components/categories/admin-categories.component').then(
+            (component) => component.AdminCategoriesComponent,
+          ),
+      },
+      {
+        path: 'products/new',
+        loadComponent: () =>
+          import('./admin/components/products/admin-product-form.component').then(
+            (component) => component.AdminProductFormComponent,
+          ),
+      },
+      {
+        path: 'products/:id',
+        loadComponent: () =>
+          import('./admin/components/products/admin-product-form.component').then(
+            (component) => component.AdminProductFormComponent,
+          ),
+      },
+      {
+        path: 'products',
+        loadComponent: () =>
+          import('./admin/components/products/admin-products.component').then(
+            (component) => component.AdminProductsComponent,
+          ),
+      },
+      {
+        path: 'banners/new',
+        loadComponent: () =>
+          import('./admin/components/banners/admin-banner-form.component').then(
+            (component) => component.AdminBannerFormComponent,
+          ),
+      },
+      {
+        path: 'banners/:id',
+        loadComponent: () =>
+          import('./admin/components/banners/admin-banner-form.component').then(
+            (component) => component.AdminBannerFormComponent,
+          ),
+      },
+      {
+        path: 'banners',
+        loadComponent: () =>
+          import('./admin/components/banners/admin-banners.component').then(
+            (component) => component.AdminBannersComponent,
+          ),
+      },
+      {
+        path: 'reviews',
+        loadComponent: () =>
+          import('./admin/components/reviews/admin-reviews.component').then(
+            (component) => component.AdminReviewsComponent,
+          ),
+      },
+      {
+        path: 'users/:id',
+        loadComponent: () =>
+          import('./admin/components/users/admin-user-details.component').then(
+            (component) => component.AdminUserDetailsComponent,
+          ),
+      },
+      {
+        path: 'users',
+        loadComponent: () =>
+          import('./admin/components/users/admin-users.component').then(
+            (component) => component.AdminUsersComponent,
+          ),
+      },
+    ],
   },
   ...productsRoutes,
 ];
