@@ -181,6 +181,111 @@
   font-size: clamp(1.5rem, 3vw, 2rem);
 }
 
+.product-reviews__form {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: #fbf9fe;
+}
+
+.product-reviews__form h3 {
+  margin: 0;
+}
+
+.product-reviews__form fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.product-reviews__form legend {
+  width: 100%;
+  margin-bottom: 6px;
+  color: var(--color-muted);
+  font-weight: 650;
+}
+
+.product-reviews__form label:has(input[type='radio']) {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.product-reviews__form label:has(input[type='radio']:checked) {
+  border-color: var(--color-brand);
+  background: #f1e8ff;
+  color: var(--color-brand-dark);
+  font-weight: 800;
+}
+
+.product-reviews__form input[type='radio'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.product-reviews__field {
+  display: grid;
+  gap: 6px;
+  color: var(--color-muted);
+  font-weight: 650;
+}
+
+.product-reviews__field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--color-ink);
+  padding: 12px;
+  font: inherit;
+}
+
+.product-reviews__form button {
+  justify-self: start;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-brand);
+  color: #fff;
+  padding: 10px 18px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.product-reviews__form button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.product-reviews__validation,
+.product-reviews__auth {
+  margin: 0;
+  color: #a52f46;
+}
+
+.product-reviews__success {
+  margin: 0;
+  color: #2c7657;
+  font-weight: 700;
+}
+
+.product-reviews__auth {
+  margin-top: 18px;
+}
+
 .product-reviews__eyebrow {
   margin: 0;
   color: var(--color-brand);

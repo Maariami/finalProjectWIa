@@ -2,16 +2,18 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { EMPTY, catchError, distinctUntilChanged, map, switchMap, tap } from 'rxjs';
+import { EMPTY, catchError, distinctUntilChanged, finalize, map, switchMap, tap } from 'rxjs';
 import { ProductsService } from '../../services/products.service';
 import { ReviewsService } from '../../services/reviews.service';
 import { ProductDetails } from '../../models/product.model';
 import { ProductReviews } from '../../models/review.model';
+import { AuthenticationService } from '../../../auth/services/authentication.service';
 
 @Component({
   selector: 'app-product-details',
-  imports: [DatePipe, DecimalPipe, RouterLink],
+  imports: [DatePipe, DecimalPipe, ReactiveFormsModule, RouterLink],
   templateUrl: './product-details.component.html',
   styleUrl: './product-details.component.scss',
 })
@@ -19,6 +21,8 @@ export class ProductDetailsComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly productsService = inject(ProductsService);
   private readonly reviewsService = inject(ReviewsService);
+  private readonly authenticationService = inject(AuthenticationService);
+  private readonly formBuilder = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly product = signal<ProductDetails | null>(null);
@@ -28,6 +32,14 @@ export class ProductDetailsComponent implements OnInit {
   protected readonly productReviews = signal<ProductReviews | null>(null);
   protected readonly reviewsLoading = signal(false);
   protected readonly reviewsError = signal<string | null>(null);
+  protected readonly reviewSubmitting = signal(false);
+  protected readonly reviewSubmitError = signal<string | null>(null);
+  protected readonly reviewSubmitSuccess = signal(false);
+
+  protected readonly reviewForm = this.formBuilder.nonNullable.group({
+    rating: [0, [Validators.required, Validators.min(1), Validators.max(5)]],
+    comment: ['', [Validators.maxLength(1000)]],
+  });
 
   ngOnInit(): void {
     this.route.paramMap
@@ -42,6 +54,9 @@ export class ProductDetailsComponent implements OnInit {
           this.productReviews.set(null);
           this.reviewsLoading.set(false);
           this.reviewsError.set(null);
+          this.reviewSubmitError.set(null);
+          this.reviewSubmitSuccess.set(false);
+          this.reviewForm.reset({ rating: 0, comment: '' });
         }),
         switchMap((idOrSlug) => {
           if (!idOrSlug) {
@@ -102,6 +117,99 @@ export class ProductDetailsComponent implements OnInit {
     const distribution = this.productReviews()?.distribution;
     if (!distribution) return 0;
     return distribution[String(star) as '1' | '2' | '3' | '4' | '5'];
+  }
+
+  protected isAuthenticated(): boolean {
+    return this.authenticationService.getValidAccessToken() !== null;
+  }
+
+  protected submitReview(): void {
+    const product = this.product();
+    if (!product || !this.isAuthenticated()) {
+      this.reviewSubmitError.set('Sign in to write a review.');
+      return;
+    }
+
+    if (this.reviewForm.invalid) {
+      this.reviewForm.markAllAsTouched();
+      this.reviewSubmitError.set('Choose a rating from 1 to 5 and keep the comment within 1000 characters.');
+      return;
+    }
+
+    const value = this.reviewForm.getRawValue();
+    const comment = value.comment.trim();
+    this.reviewSubmitting.set(true);
+    this.reviewSubmitError.set(null);
+    this.reviewSubmitSuccess.set(false);
+
+    this.reviewsService
+      .createReview(product.id, {
+        rating: value.rating,
+        comment: comment.length > 0 ? comment : null,
+      })
+      .pipe(
+        tap(() => {
+          if (this.product()?.id === product.id) {
+            this.reviewSubmitSuccess.set(true);
+            this.reviewForm.reset({ rating: 0, comment: '' });
+            this.loadReviews(product);
+          }
+        }),
+        catchError((error: unknown) => {
+          if (this.product()?.id === product.id) {
+            this.reviewSubmitError.set(this.getReviewApiError(error));
+          }
+          return EMPTY;
+        }),
+        finalize(() => {
+          if (this.product()?.id === product.id) {
+            this.reviewSubmitting.set(false);
+          }
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  private getReviewApiError(error: unknown): string {
+    if (!(error instanceof HttpErrorResponse)) {
+      return 'An unexpected error occurred while saving your review.';
+    }
+
+    const body: unknown = error.error;
+    if (typeof body === 'object' && body !== null) {
+      const code = 'code' in body && typeof body.code === 'string' ? body.code : '';
+      const detail = 'detail' in body && typeof body.detail === 'string' ? body.detail : '';
+      const validationMessages: string[] = [];
+
+      if ('errors' in body && typeof body.errors === 'object' && body.errors !== null) {
+        for (const messages of Object.values(body.errors)) {
+          if (Array.isArray(messages)) {
+            validationMessages.push(
+              ...messages.filter((message): message is string => typeof message === 'string'),
+            );
+          }
+        }
+      }
+
+      if (error.status === 409 && code === 'review_exists') {
+        return 'You have already reviewed this product.';
+      }
+      if (error.status === 401) {
+        return 'Sign in again to write a review.';
+      }
+      if (error.status === 403) {
+        return detail || 'You are not allowed to perform this action.';
+      }
+      if (validationMessages.length > 0) {
+        return validationMessages.join(' ');
+      }
+      if (detail) {
+        return detail;
+      }
+    }
+
+    return error.message || 'An unexpected error occurred while saving your review.';
   }
 
   private getErrorMessage(error: unknown, context: 'product' | 'reviews' = 'product'): string {

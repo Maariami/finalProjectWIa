@@ -8,6 +8,7 @@ import { ProductDetails } from '../../models/product.model';
 import { ProductReviews } from '../../models/review.model';
 import { ProductsService } from '../../services/products.service';
 import { ReviewsService } from '../../services/reviews.service';
+import { AuthenticationService } from '../../../auth/services/authentication.service';
 import { ProductDetailsComponent } from './product-details.component';
 
 const productsService = {
@@ -16,6 +17,11 @@ const productsService = {
 
 const reviewsService = {
   getProductReviews: vi.fn<ReviewsService['getProductReviews']>(),
+  createReview: vi.fn<ReviewsService['createReview']>(),
+};
+
+const authenticationService = {
+  getValidAccessToken: vi.fn<AuthenticationService['getValidAccessToken']>(),
 };
 
 const createProduct = (name: string): ProductDetails => ({
@@ -45,6 +51,9 @@ describe('ProductDetailsComponent', () => {
   beforeEach(() => {
     productsService.getProductByIdOrSlug.mockReset();
     reviewsService.getProductReviews.mockReset();
+    reviewsService.createReview.mockReset();
+    authenticationService.getValidAccessToken.mockReset();
+    authenticationService.getValidAccessToken.mockReturnValue(null);
     reviewsService.getProductReviews.mockReturnValue(
       of({
         reviews: {
@@ -72,6 +81,7 @@ describe('ProductDetailsComponent', () => {
         ]),
         { provide: ProductsService, useValue: productsService },
         { provide: ReviewsService, useValue: reviewsService },
+        { provide: AuthenticationService, useValue: authenticationService },
       ],
     });
   });
